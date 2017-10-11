@@ -1,0 +1,122 @@
+anonip.py
+Swiss Privacy Foundation
+https://www.privacyfoundation.ch/
+
+
+=========
+INHALT:
+=========
+ - BESCHREIBUNG
+ - FUNKTIONEN
+ - OPTIONEN
+ - NUTZUNG
+ - MOTIVATION
+ - SWISS PRIVACY FOUNDATION
+ - SPENDEN
+
+
+===============================================================================
+ ++ BESCHREIBUNG ++
+===============================================================================
+
+Anonip ist ein Tool zur Anonymisierung von IP-Adressen in Logdateien.
+
+Durch die Maskierung der letzten Bits von IPv4- und IPv6-Adressen, bleiben die
+wichtigen Informationen bestmöglich erhalten, die IP-Adressen sind jedoch nicht
+mehr einem Anschluss zuzuordnen.
+
+Die Logdaten werden üblicherweise direkt von Apache an Anonip übergeben. Somit
+werden die unmaskierten IP-Adressen zu keinem Zeitpunkt gespeichert.
+Sie können aber auch im Nachhinein per cat an Anonip übergeben werden.
+
+===============================================================================
+ ++ FUNKTIONEN ++
+===============================================================================
+
+ - Maskiert IP-Adressen in Logdateien
+ - Einstellbare Anzahl maskierter Bits.
+ - Die die IP-Adresse beinhaltende Spalte kann frei angegeben werden
+ - Nutzbar sowohl für access.log- als auch für error.log-Dateien.
+
+===============================================================================
+ ++ OPTIONEN ++
+===============================================================================
+
+  -h, --help          Hilfe
+  -d, --debug         zeige debug-Ausgaben
+  --ipv4mask N        maskiere die letzten N Bits von IPv4-Adressen
+                      (default: 12)
+  --ipv6mask N        maskiere die letzten N Bits von IPv6-Adressen
+                      (default: 84)
+  --increment N       erhöhe die IP-Adressen um N (default: 0)
+  --output FILE       die zu schreibende Apache Logdatei (default: None)
+  --column N [N ...]  Spalte im Access-Log, in der sich die IP-Adresse befindet
+                      (default: 1)
+  --replace STRING    Ersatzstring, falls die IP-Adresserkennung scheitert
+                      (default: None, die Eingabe wird unverändert ausgegeben;
+                      Beispiel: 0.0.0.0)
+  --user USERNAME     wechsle die User-ID
+  --group GROUPNAME   wechsle die Gruppen-ID
+  --umask UMASK       setze die Umask
+
+===============================================================================
+ ++ NUTZUNG ++
+===============================================================================
+
+In der Apache Konfiguration, bzw. in jener des vhost muss die Logausgabe an
+anonip gepipt werden:
+
+CustomLog "|/pfad/zu/anonip.py [OPTIONEN] --output /pfad/zu/log" combined
+
+That's it! IP-Adressen werden von Apache nun maskiert geloggt.
+
+Alternativ:
+
+cat /pfad/zu/orig_log | /pfad/zu/anonip.py [OPTIONEN] --output /pfad/zu/log
+
+===============================================================================
+ ++ MOTIVATION ++
+===============================================================================
+
+In einer Zeit, in der die Datensammelwut gewisser Kreise immer noch
+augenfälliger wird, ist es enorm wichtig, zu erkennen, dass nicht selten auch
+wir selber unnötig detaillierte Datensammlungen unterhalten.
+
+So zum Beispiel Betreiberinnen und Betreiber von Webservern. In den Logdateien
+tauchen die IP-Adressen aller Besucherinnen und Besucher im Klartext
+auf, was schnell dazu führt, dass wir Unmengen an personenbezogenen Daten
+besitzen.
+
+Anonip versucht genau hier Abhilfe zu schaffen, ohne jedoch auf den
+unumstrittenen Nutzen von Logdateien verzichten zu müssen.
+
+Durch die Maskierung der letzten Bits der IP-Adressen, lassen sich diese nach
+wie vor - bis zu einem bestimmten Grad - auseinanderhalten. Auch ein grobes
+Geolocating und eine DNS-Reverse-Auflösung sind noch immer möglich. Sie sind
+jedoch nicht mehr einem bestimmten Anschluss zuzuordnen.
+
+===============================================================================
+ ++ SWISS PRIVACY FOUNDATION ++
+===============================================================================
+
+Der Verein Swiss Privacy Foundation setzt sich für den Schutz der digitalen
+Privatsphäre, für Meinungs- und Versammlungsfreiheit und den ungehinderten
+Informationszugang ein. Dazu werden praxisorientierte Workshops, Anleitungen
+und entsprechende Dienste zur freien Nutzung angeboten.
+
+https://www.privacyfoundation.ch/
+
+===============================================================================
+ ++ SPENDEN ++
+===============================================================================
+
+BitCoins: 15s5e8u9NcAZUie6ivMXLa2AvatvmtxqXu
+
+Bank:
+Alternative Bank Schweiz AG 
+CH-4601 Olten
+Bankenclearing-Nr. 8390
+Postkonto der Bank: 46-110-7
+Konto-Nr.: 308.227.100-00
+IBAN CH8108390030822710000
+BIC: ALSWCH21XXX
