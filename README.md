@@ -1,23 +1,14 @@
 anonip.py
+Digitale Gesellschaft
+https://www.digitale-gesellschaft.ch
+
+formerly
+
 Swiss Privacy Foundation
 https://www.privacyfoundation.ch/
 
 
-=========
-INHALT:
-=========
- - DESCRIPTION
- - FUNCTIONS
- - OPTIONS
- - USAGE
- - MOTIVATION
- - SWISS PRIVACY FOUNDATION
- - DONATIONS
-
-
-===============================================================================
- ++ DESCRIPTION ++
-===============================================================================
+# DESCRIPTION
 
 Anonip is a tool to anonymize IP-addresses in log-files.
 
@@ -30,9 +21,7 @@ addresses are never written to any file.
 
 With the help of cat, it's also possible, to rewrite existing log-files.
 
-===============================================================================
- ++ FUNCTIONS ++
-===============================================================================
+# FUNCTIONS ++
 
  - Masks IP-addresses in log-files
  - Configurable amount of masked bits
@@ -92,30 +81,3 @@ distinguish them up to a certain degree. Compared to the entire removal of the
 IP-adresses, we're still able to make a rough geolocating as well as a reverse
 DNS lookup. But the otherwise distinct IP-addresses do not match a particular
 individuum anymore.
-
-===============================================================================
- ++ SWISS PRIVACY FOUNDATION ++
-===============================================================================
-
-The Swiss Privacy Foundation endorses the protection of the digital privacy,
-freedom of opinion and freedom of assembly as well as unrestricted access to
-information. To subserve these interests, the foundation holds practically
-orientated workshops, creates and publishes instruction manuals and operates
-corresponding services that are available for free to the public.
-
-https://www.privacyfoundation.ch/
-
-===============================================================================
- ++ DONATIONS ++
-===============================================================================
-
-BitCoins: 15s5e8u9NcAZUie6ivMXLa2AvatvmtxqXu
-
-Bank:
-Alternative Bank Schweiz AG 
-CH-4601 Olten
-Bankenclearing-Nr. 8390
-Postkonto der Bank: 46-110-7
-Konto-Nr.: 308.227.100-00
-IBAN CH8108390030822710000
-BIC: ALSWCH21XXX
