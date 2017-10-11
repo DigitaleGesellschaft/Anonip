@@ -1,14 +1,15 @@
 anonip.py
+
 Digitale Gesellschaft
 https://www.digitale-gesellschaft.ch
 
-formerly
 
+formerly
 Swiss Privacy Foundation
 https://www.privacyfoundation.ch/
 
 
-# DESCRIPTION
+## DESCRIPTION
 
 Anonip is a tool to anonymize IP-addresses in log-files.
 
@@ -21,17 +22,15 @@ addresses are never written to any file.
 
 With the help of cat, it's also possible, to rewrite existing log-files.
 
-# FUNCTIONS ++
+## FUNCTIONS
 
  - Masks IP-addresses in log-files
  - Configurable amount of masked bits
  - The column containing the IP-address can freely be chosen
  - Works for both access.log- and error.log-files
 
-===============================================================================
- ++ OPTIONS ++
-===============================================================================
-
+## OPTIONS
+```
   -h, --help          show this help message and exit
   -d, --debug         debug
   --ipv4mask N        truncate the last N bits (default: 12)
@@ -44,26 +43,22 @@ With the help of cat, it's also possible, to rewrite existing log-files.
   --user USERNAME     switch user id
   --group GROUPNAME   switch group id
   --umask UMASK       set umask
+```
 
-
-===============================================================================
- ++ USAGE ++
-===============================================================================
+## USAGE
 
 In the Apache configuration (or the one of the vhost) the log-output needs to
 get piped to anonip:
-
+```
 CustomLog "|/path/to/anonip.py [OPTIONS] --output /path/to/log" combined
-
+```
 That's it! All the IP-addresses will be masked in the log now.
 
 Alternative:
-
+```
 cat /path/to/orig_log | /path/to/anonip.py [OPTIONS] --output /path/to/log
-
-===============================================================================
- ++ MOTIVATION ++
-===============================================================================
+```
+## MOTIVATION
 
 In a time, where the mass-data-collection of certain companies and
 organisations gets more and more obvious, it's crutial to realize, that also
