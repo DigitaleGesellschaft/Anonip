@@ -45,8 +45,7 @@ With the help of cat, it's also possible, to rewrite existing log-files.
   --umask UMASK       set umask
 ```
 
-## USAGE
-
+## USAGE
 In the Apache configuration (or the one of the vhost) the log-output needs to
 get piped to anonip:
 ```
