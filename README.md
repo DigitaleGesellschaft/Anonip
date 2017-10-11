@@ -1,4 +1,4 @@
-anonip.py
+# anonip.py
 
 Digitale Gesellschaft
 https://www.digitale-gesellschaft.ch
