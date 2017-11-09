@@ -11,7 +11,7 @@ https://www.privacyfoundation.ch/
 
 ## DESCRIPTION
 
-Anonip is a tool to anonymize IP-addresses in log-files.
+Anonip is a tool to anonymize IP-addresses in log-files of Apache Webserver
 
 It masks the last bits of IPv4- and IPv6-addresses. That way most of the
 relevant information is preserved, while the IP-address does not match a
@@ -21,6 +21,8 @@ The log-entries get directly piped from Apache to Anonip. The unmasked IP-
 addresses are never written to any file.
 
 With the help of cat, it's also possible, to rewrite existing log-files.
+
+for usage with nginx see here: https://github.com/DigitaleGesellschaft/Anonip/issues/1
 
 ## FUNCTIONS
 
