@@ -453,10 +453,15 @@ def main():
     """
     Prepares the script before the endless parsing loop starts.
     """
+    def bound_cleanup_handler(signum, frame):
+        """
+        Be PEP-8 compliant and always use a def statement instead of an
+        assignment statement that binds a lambda expression directly to
+        an identifier.
+        """
+        return cleanup_handler(signum, config)
     # assign a signal handler, that should clean up if the script
     # needs to exit
-    bound_cleanup_handler = lambda signum, frame: cleanup_handler(signum,
-                                                                  config)
     signal(SIGTERM, bound_cleanup_handler)
     signal(SIGQUIT, bound_cleanup_handler)
     signal(SIGINT, bound_cleanup_handler)
