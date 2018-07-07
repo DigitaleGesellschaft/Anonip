@@ -212,9 +212,15 @@ def ntop_pack6(address):
 
 def truncate_address(address, config):
     """Truncates the ip addresses"""
+    port_number = ''
     # try ipv4 first....
     family = AF_INET
-    addr_pton = pton_unpack4(address)
+    try:
+        address_without_port, port_number = address.split(':')
+    except ValueError:
+        addr_pton = pton_unpack4(address)
+    else:
+        addr_pton = pton_unpack4(address_without_port)
 
     if addr_pton is None:
         # if we got no result, try again with IPv6
@@ -241,6 +247,8 @@ def truncate_address(address, config):
 
     # return the IP address as a string
     if family == AF_INET:
+        if port_number:
+            return ':'.join([ntop_pack4(s_addr_output), port_number])
         return ntop_pack4(s_addr_output)
     elif family == AF_INET6:
         return ntop_pack6(s_addr_output)
