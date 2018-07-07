@@ -394,8 +394,8 @@ def parse_arguments():
                         '%(default)s)')
     parser.set_defaults(column=1)
     parser.add_argument('--replace', metavar='STRING',
-                        help='replacement string in case address parsing fails '
-                        '(default: %(default)s. Example: 0.0.0.0)')
+                        help='replacement string in case address parsing fails'
+                        ' (default: %(default)s. Example: 0.0.0.0)')
     parser.set_defaults(replace=None)
     parser.add_argument('--user', metavar='USERNAME',
                         help='switch user id',
@@ -435,7 +435,8 @@ def cleanup(config):
         config.output.close()
 
         if config.debug:
-            print >> sys.stderr, "[debug] closed output file %s" % config.output.name
+            print >> sys.stderr, "[debug] closed output file %s" % \
+                                 config.output.name
 
 
 def cleanup_handler(signum, config):
