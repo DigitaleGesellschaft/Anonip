@@ -59,166 +59,175 @@ __version__ = '0.6.0'
 __license__ = 'BSD'
 __author__ = 'Digitale Gesellschaft'
 
-logger = logging.getLogger('anonip')
+logger = logging.getLogger(__name__)
 
 
-def read_stdin(args, output_file=None):
-    """
-    This function reads from stdin and loops forever.
-    Output is either written to stdout or the file specified as argument.
-    The function does not return as it should loop forever.
+class Anonip(object):
+    def __init__(self,
+                 columns=None,
+                 ipv4mask=12,
+                 ipv6mask=84,
+                 increment=0,
+                 replace=None):
+        """
+        Main class for anonip.
 
-    :param args: argparse.Namespace
-    :param output_file: _io.TextIOWrapper
-    :return: None
-    """
-    while 1:
-        try:
-            line = sys.stdin.readline()
-        except IOError as err:
-            # if reading from stdin fails, exit
-            logger.warning(err)
-            break
-        except KeyboardInterrupt:
-            break
-        else:
-            line = line.rstrip()
+        :param columns: list of ints
+        :param ipv4mask: int
+        :param ipv6mask: int
+        :param increment: int
+        :param replace: str
+        """
+        self.columns = columns if columns else [1]
+        self.ipv4mask = ipv4mask
+        self.ipv6mask = ipv6mask
+        self.increment = increment
+        self.replace = replace
 
-        # if line couldn't be read (e.g. when EOF has been received)
-        # exit the loop
-        if not line:
-            break
+    def run(self):
+        """
+        Generator that reads from stdin and loops forever.
 
-        # ignore empty lines
-        if line == '\n':
-            continue
+        Yields anonymized log lines.
 
-        if args.debug:
+        :return: None
+        """
+        while 1:
+            try:
+                line = sys.stdin.readline()
+            except IOError as err:
+                # if reading from stdin fails, exit
+                logger.warning(err)
+                break
+            except KeyboardInterrupt:
+                break
+            else:
+                line = line.rstrip()
+
+            # if line couldn't be read (e.g. when EOF has been received)
+            # exit the loop
+            if not line:
+                break
+
+            # ignore empty lines
+            if line == '\n':
+                continue
+
             logger.debug('Got line: {}'.format(line))
 
-        # parse the line
-        parsed_line = parse_line(line, args)
+            yield self.process_line(line)
 
-        # decide where to write the result to ... either stdin or the specified
-        # output file
-        if output_file:
-            output_file.write("{}\n".format(parsed_line))
-            output_file.flush()
-        else:
-            print(parsed_line)
+    def process_line(self, line):
+        """
+        This function processes a single line.
 
+        It returns the anonymized log line as string.
+        """
+        loglist = line.split(" ")
 
-def truncate_address(ip, ipv4mask, ipv6mask):
-    if ip.version == 4:
-        mask = 32 - ipv4mask
-    else:
-        mask = 128 - ipv6mask
+        for index in self.columns:
+            decindex = index - 1
+            try:
+                loglist[decindex]
+            except IndexError:
+                logger.warning('Column {} does not exist!'.format(self.columns))
+                continue
+            else:
+                loglist[decindex] = self.handle_ip_column(loglist[decindex])
 
-    trunc_ip = ipaddress.ip_interface(
-        '{}/{}'.format(ip, mask)).network.network_address
+        return " ".join(loglist)
 
-    return trunc_ip
-
-
-def handle_ip_column(raw_ip, ipv4mask, ipv6mask, increment, replace=None):
-    """
-    This function extracts the ip from the column and returns the whole column
-    with the ip anonymized.
-    """
-    try:
-        ip = ipaddress.ip_address(raw_ip)
-    except Exception as e:
-        logger.warning(e)
-        if replace:
-            logger.warning('Using replacement string.')
-            return replace
-        else:
-            return raw_ip
-
-    trunc_ip = truncate_address(ip, ipv4mask, ipv6mask)
-
-    if increment:
-        trunc_ip = trunc_ip + increment
-
-    return str(trunc_ip)
-
-
-def parse_line(line, args):
-    """
-    This function parses a single line.
-    As the user can specify --column, the function needs to select the right
-    column(s) according to set argument.
-    It returns the anonymized log line as string.
-    """
-    loglist = line.split(" ")
-
-    for index in args.column:
-        decindex = index - 1
+    def handle_ip_column(self, raw_ip):
+        """
+        This function extracts the ip from the column and returns the whole
+        column with the ip anonymized.
+        """
         try:
-            loglist[decindex]
-        except IndexError:
-            logger.warning('Column {} does not exist!'.format(args.column))
-            continue
+            ip = ipaddress.ip_address(raw_ip)
+        except Exception as e:
+            logger.warning(e)
+            if self.replace:
+                logger.warning('Using replacement string.')
+                return self.replace
+            else:
+                return raw_ip
+
+        trunc_ip = self.truncate_address(ip)
+
+        if self.increment:
+            trunc_ip = trunc_ip + self.increment
+
+        return str(trunc_ip)
+
+    def truncate_address(self, ip):
+        """
+        Do the actual masking of the IP addresses
+        :param ip: ipaddress object
+        :return: ipaddress object
+        """
+        if ip.version == 4:
+            mask = 32 - self.ipv4mask
         else:
-            loglist[decindex] = handle_ip_column(loglist[decindex],
-                                                 args.ipv4mask,
-                                                 args.ipv6mask,
-                                                 args.increment,
-                                                 args.replace)
+            mask = 128 - self.ipv6mask
 
-    # return without newline at the end and also remove trailing whitespaces
-    return " ".join(loglist)
+        trunc_ip = ipaddress.ip_interface(
+            '{}/{}'.format(ip, mask)).network.network_address
+
+        return trunc_ip
 
 
-def verify_ipv4mask(parser, arg):
+def _verify_ipv4mask(parser, arg):
     """
     Verifies if the supplied ipv4 mask is valid.
     """
+    msg = '--ipv4mask must be in between 1 and 32'
     try:
         mask = int(arg)
     except ValueError:
-        parser.error("--ipv4mask must be in between 1 and 32")
+        parser.error(msg)
         return
 
     if not 0 < mask <= 32:
-        parser.error("--ipv4mask must be in between 1 and 32")
+        parser.error(msg)
         return
 
     return mask
 
 
-def verify_ipv6mask(parser, arg):
+def _verify_ipv6mask(parser, arg):
     """
     Verify if the supplied ipv6 mask is valid.
     """
+    msg = '--ipv6mask must be in between 1 and 128'
     try:
         mask = int(arg)
     except ValueError:
-        parser.error("--ipv6mask must be in between 1 and 128")
+        parser.error(msg)
         return
 
     if not 0 < mask <= 128:
-        parser.error("--ipv6mask must be in between 1 and 128")
+        parser.error(msg)
         return
 
     return mask
 
 
-def verify_integer_ht_1(parser, value, name):
+def _verify_integer_ht_1(parser, value, name):
     """
     Verifies if the supplied column and increment are valid.
     """
+    msg = '--{} must be a positive integer'.format(name)
     try:
         value = int(value)
     except ValueError:
-        parser.error('--{} must be an integer'.format(name))
+        parser.error(msg)
     if not value >= 1:
-        parser.error('--{} must be an integer, 1 or higher'.format(name))
+        parser.error(msg)
     return value
 
 
-def verify_increment(parser, increment):
-    value = verify_integer_ht_1(parser, increment, 'increment')
+def _verify_increment(parser, increment):
+    value = _verify_integer_ht_1(parser, increment, 'increment')
     if value > 2844131327:
         parser.error("--increment must be an integer between 1 and "
                      "2844131327")
@@ -254,7 +263,7 @@ def switch_group(parser, group):
         parser.error('could not setgid to "{}"'.format(group))
 
 
-def check_umask(parser, umask):
+def set_umask(parser, umask):
     """
     Set umask.
     """
@@ -278,23 +287,24 @@ def parse_arguments():
 
     parser.add_argument('-4', '--ipv4mask', metavar='INTEGER', help='truncate '
                         'the last n bits (default: %(default)s)',
-                        type=lambda x: verify_ipv4mask(parser, x))
+                        type=lambda x: _verify_ipv4mask(parser, x))
     parser.set_defaults(ipv4mask=12)
     parser.add_argument('-6', '--ipv6mask',
-                        type=lambda x: verify_ipv6mask(parser, x),
+                        type=lambda x: _verify_ipv6mask(parser, x),
                         metavar='INTEGER', help='truncate the last n bits '
                         '(default: %(default)s)')
     parser.set_defaults(ipv6mask=84)
     parser.add_argument('-i', '--increment', metavar='INTEGER',
-                        type=lambda x: verify_increment(parser, x),
+                        type=lambda x: _verify_increment(parser, x),
                         help='increment the IP address by n (default: '
                         '%(default)s)')
     parser.set_defaults(increment=0)
     parser.add_argument('-o', '--output', metavar='FILE',
                         help='file to write to')
-    parser.add_argument('-c', '--column', metavar='INTEGER', nargs='+',
-                        type=lambda x: verify_integer_ht_1(parser, x,
-                                                           'column'),
+    parser.add_argument('-c', '--column', metavar='INTEGER', dest='columns',
+                        nargs='+',
+                        type=lambda x: _verify_integer_ht_1(parser, x,
+                                                            'column'),
                         help='assume IP address is in column n (default: 1)')
     parser.set_defaults(column=[1])
     parser.add_argument('-r', '--replace', metavar='STRING',
@@ -309,7 +319,7 @@ def parse_arguments():
                         type=str)
     parser.add_argument('-m', '--umask', metavar='UMASK',
                         help='set umask',
-                        type=lambda x: check_umask(parser, x))
+                        type=lambda x: set_umask(parser, x))
     parser.add_argument('-d', '--debug', action='store_true', help='print '
                         'debug messages')
     parser.add_argument('-v', '--version', action='version',
@@ -333,18 +343,28 @@ def parse_arguments():
 
 def main():
     """
-    Prepares the script before the endless parsing loop starts.
+    Main CLI function for anonip.
     """
+
     args = parse_arguments()
+
+    anonip = Anonip(args.columns,
+                    args.ipv4mask,
+                    args.ipv6mask,
+                    args.increment,
+                    args.replace)
 
     if args.output:
         try:
             with open(args.output, "a") as output_file:
-                read_stdin(args, output_file)
+                for line in anonip.run():
+                    output_file.write("{}\n".format(line))
+                    output_file.flush()
         except IOError as err:
             logger.error(err)
     else:
-        read_stdin(args)
+        for line in anonip.run():
+            print(line)
 
 
 if __name__ == "__main__":

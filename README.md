@@ -85,6 +85,31 @@ Alternative:
 cat /path/to/orig_log | /path/to/anonip.py [OPTIONS] --output /path/to/log
 ```
 
+### As a python module
+
+Read from stdin:
+``` python
+from anonip import Anonip
+
+
+anonip = Anonip()
+for line in anonip.run():
+    print(line)
+
+```
+Manually feed lines:
+``` python
+from anonip import Anonip
+
+
+data = ['1.1.1.1', '2.2.2.2', '3.3.3.3']
+anonip = Anonip()
+
+for line in data:
+    print(anonip.process_line(line))
+
+```
+
 ## Motivation
 
 In a time, where the mass-data-collection of certain companies and
