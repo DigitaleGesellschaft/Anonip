@@ -9,7 +9,7 @@ Swiss Privacy Foundation
 https://www.privacyfoundation.ch/
 
 
-## DESCRIPTION
+## Description
 
 Anonip is a tool to anonymize IP-addresses in log-files of Apache Webserver
 
@@ -24,30 +24,55 @@ With the help of cat, it's also possible, to rewrite existing log-files.
 
 for usage with nginx see here: https://github.com/DigitaleGesellschaft/Anonip/issues/1
 
-## FUNCTIONS
+## Features
 
  - Masks IP-addresses in log-files
  - Configurable amount of masked bits
  - The column containing the IP-address can freely be chosen
  - Works for both access.log- and error.log-files
 
-## OPTIONS
+## Dependencies
+If you're using python version 3, there are no external dependencies.
+
+For python version 2:
+ - [ipaddress module](https://bitbucket.org/kwi/py2-ipaddress/)
+
+## Invocation
+
 ```
-  -h, --help          show this help message and exit
-  -d, --debug         debug
-  --ipv4mask N        truncate the last N bits (default: 12)
-  --ipv6mask N        truncate the last N bits (default: 84)
-  --increment N       increment the IP address by N (default: 0)
-  --output FILE       write to file (default: None)
-  --column N [N ...]  assume IP address is in column n (default: 1)
-  --replace STRING    replacement string in case address parsing fails
-                      (default: None. Example: 0.0.0.0)
-  --user USERNAME     switch user id
-  --group GROUPNAME   switch group id
-  --umask UMASK       set umask
+usage: anonip.py [-h] [-4 INTEGER] [-6 INTEGER] [-i INTEGER] [-o FILE]
+                 [-c INTEGER [INTEGER ...]] [-r STRING] [-u USERNAME]
+                 [-g GROUPNAME] [-m UMASK] [-d] [-v]
+
+An ip address anonymizer.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -4 INTEGER, --ipv4mask INTEGER
+                        truncate the last n bits (default: 12)
+  -6 INTEGER, --ipv6mask INTEGER
+                        truncate the last n bits (default: 84)
+  -i INTEGER, --increment INTEGER
+                        increment the IP address by n (default: 0)
+  -o FILE, --output FILE
+                        file to write to
+  -c INTEGER [INTEGER ...], --column INTEGER [INTEGER ...]
+                        assume IP address is in column n (default: 1)
+  -r STRING, --replace STRING
+                        replacement string in case address parsing fails
+                        Example: 0.0.0.0)
+  -u USERNAME, --user USERNAME
+                        switch user id
+  -g GROUPNAME, --group GROUPNAME
+                        switch group id
+  -m UMASK, --umask UMASK
+                        set umask
+  -d, --debug           print debug messages
+  -v, --version         show program's version number and exit
 ```
 
-## USAGE
+## Usage
+
 In the Apache configuration (or the one of the vhost) the log-output needs to
 get piped to anonip:
 ```
@@ -59,7 +84,8 @@ Alternative:
 ```
 cat /path/to/orig_log | /path/to/anonip.py [OPTIONS] --output /path/to/log
 ```
-## MOTIVATION
+
+## Motivation
 
 In a time, where the mass-data-collection of certain companies and
 organisations gets more and more obvious, it's crutial to realize, that also

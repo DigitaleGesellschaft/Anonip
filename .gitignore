@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Environments
+pyenv/
+pyenv.bak/
+
+# custom files
+test.py
+pyenv/
+pyenv27/
+
+.idea/
