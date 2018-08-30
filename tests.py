@@ -88,6 +88,13 @@ class TestAnonipClass(unittest.TestCase):
         self.assertEqual(self.anonip.process_line(DATA['multi4']),
                          DATA_RESULT['multi4'])
 
+    def test_delimiter(self):
+        self.anonip.delimiter = ';'
+        self.anonip.columns = [2]
+        self.assertEqual(
+            self.anonip.process_line(DATA['second4'].replace(' ', ';')),
+            DATA_RESULT['second4'].replace(' ', ';'))
+
     def test_run(self):
         sys.stdin = StringIO(u'192.168.100.200\n1.2.3.4\n\n')
         lines = []
@@ -105,21 +112,25 @@ class TestAnonipCli(unittest.TestCase):
         self.assertEqual(anonip.parse_arguments(['-6', '64']).ipv6mask, 64)
 
     def test_verify_ipv4mask(self):
+        self.assertEqual(anonip._verify_ipv4mask('1'), 1)
         for value in ['0', '33', 'string']:
             self.assertRaises(argparse.ArgumentTypeError,
                               anonip._verify_ipv4mask, value)
 
     def test_verify_ipv6mask(self):
+        self.assertEqual(anonip._verify_ipv6mask('1'), 1)
         for value in ['0', '129', 'string']:
             self.assertRaises(argparse.ArgumentTypeError,
                               anonip._verify_ipv6mask, value)
 
     def test_verify_integer_ht_1(self):
         for value in ['0', 'string']:
+            self.assertEqual(anonip._verify_integer_ht_1('1'), 1)
             self.assertRaises(argparse.ArgumentTypeError,
                               anonip._verify_integer_ht_1, value)
 
     def test_verify_increment(self):
+        self.assertEqual(anonip._verify_increment('1'), 1)
         for value in ['0', '2844131328', 'string']:
             self.assertRaises(argparse.ArgumentTypeError,
                               anonip._verify_increment, value)

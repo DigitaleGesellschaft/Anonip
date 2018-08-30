@@ -74,6 +74,7 @@ class Anonip(object):
                  ipv4mask=12,
                  ipv6mask=84,
                  increment=0,
+                 delimiter=' ',
                  replace=None):
         """
         Main class for anonip.
@@ -82,12 +83,14 @@ class Anonip(object):
         :param ipv4mask: int
         :param ipv6mask: int
         :param increment: int
+        :param delimiter: str
         :param replace: str
         """
         self.columns = columns if columns else [1]
         self.ipv4mask = ipv4mask
         self.ipv6mask = ipv6mask
         self.increment = increment
+        self.delimiter = delimiter
         self.replace = replace
 
     def run(self):
@@ -129,7 +132,7 @@ class Anonip(object):
 
         It returns the anonymized log line as string.
         """
-        loglist = line.split(" ")
+        loglist = line.split(self.delimiter)
 
         for index in self.columns:
             decindex = index - 1
@@ -143,7 +146,7 @@ class Anonip(object):
             else:
                 loglist[decindex] = self.handle_ip_column(loglist[decindex])
 
-        return " ".join(loglist)
+        return self.delimiter.join(loglist)
 
     def handle_ip_column(self, raw_ip):
         """
@@ -321,6 +324,9 @@ def parse_arguments(args):
                         type=lambda x: _verify_integer_ht_1(x),
                         help='assume IP address is in column n (default: 1)')
     parser.set_defaults(column=[1])
+    parser.add_argument('-l', '--delimiter', metavar='STRING', type=str,
+                        help='log delimiter (default: " ")')
+    parser.set_defaults(delimiter=' ')
     parser.add_argument('-r', '--replace', metavar='STRING',
                         help='replacement string in case address parsing fails'
                         ' Example: 0.0.0.0)')
@@ -366,6 +372,7 @@ def main():
                     args.ipv4mask,
                     args.ipv6mask,
                     args.increment,
+                    args.delimiter,
                     args.replace)
 
     if args.output:

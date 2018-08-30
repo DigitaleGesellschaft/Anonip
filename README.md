@@ -41,8 +41,8 @@ For python version 2:
 
 ```
 usage: anonip.py [-h] [-4 INTEGER] [-6 INTEGER] [-i INTEGER] [-o FILE]
-                 [-c INTEGER [INTEGER ...]] [-r STRING] [-u USERNAME]
-                 [-g GROUPNAME] [-m UMASK] [-d] [-v]
+                 [-c INTEGER [INTEGER ...]] [-l STRING] [-r STRING]
+                 [-u USERNAME] [-g GROUPNAME] [-m UMASK] [-d] [-v]
 
 An ip address anonymizer.
 
@@ -58,6 +58,8 @@ optional arguments:
                         file to write to
   -c INTEGER [INTEGER ...], --column INTEGER [INTEGER ...]
                         assume IP address is in column n (default: 1)
+  -l STRING, --delimiter STRING
+                        log delimiter (default: " ")
   -r STRING, --replace STRING
                         replacement string in case address parsing fails
                         Example: 0.0.0.0)
