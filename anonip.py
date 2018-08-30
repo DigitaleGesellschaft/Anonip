@@ -48,6 +48,11 @@ except ImportError:
     print("\033[31;1mError: Module ipaddress not found.\033[0m",
           file=sys.stderr)
     sys.exit(1)
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    # compatibility for python < 3
+    from urlparse import urlparse
 import logging
 from grp import getgrnam
 from pwd import getpwnam
@@ -130,7 +135,9 @@ class Anonip(object):
             try:
                 loglist[decindex]
             except IndexError:
-                logger.warning('Column {} does not exist!'.format(self.columns))
+                logger.warning(
+                    'Column {} does not exist!'.format(self.columns)
+                )
                 continue
             else:
                 loglist[decindex] = self.handle_ip_column(loglist[decindex])
@@ -141,21 +148,32 @@ class Anonip(object):
         """
         This function extracts the ip from the column and returns the whole
         column with the ip anonymized.
+
+        Handles also pptional port as part of the IP.
         """
         try:
             ip = ipaddress.ip_address(raw_ip)
-        except Exception as e:
-            logger.warning(e)
-            if self.replace:
-                logger.warning('Using replacement string.')
-                return self.replace
-            else:
-                return raw_ip
+            port = None
+        except ValueError:
+            try:
+                parsed = urlparse('//{}'.format(raw_ip))
+                ip = ipaddress.ip_address(parsed.hostname)
+                port = parsed.port
+            except Exception as e:
+                logger.warning(e)
+                if self.replace:
+                    logger.warning('Using replacement string.')
+                    return self.replace
+                else:
+                    return raw_ip
 
         trunc_ip = self.truncate_address(ip)
 
         if self.increment:
             trunc_ip = trunc_ip + self.increment
+
+        if port:
+            trunc_ip = '{}:{}'.format(trunc_ip, port)
 
         return str(trunc_ip)
 
