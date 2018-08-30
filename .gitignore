@@ -10,11 +10,13 @@ dist/
 
 # Environments
 pyenv/
-pyenv.bak/
-
-# custom files
-test.py
-pyenv/
 pyenv27/
+pyenv.bak/
+pyenv27.bak/
 
+# tests
+.tox/
+.coverage
+
+# idea
 .idea/

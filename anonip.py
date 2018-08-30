@@ -52,6 +52,7 @@ try:
     from urllib.parse import urlparse
 except ImportError:
     # compatibility for python < 3
+    # noinspection PyUnresolvedReferences
     from urlparse import urlparse
 import logging
 from grp import getgrnam
@@ -194,62 +195,70 @@ class Anonip(object):
         return trunc_ip
 
 
-def _verify_ipv4mask(parser, arg):
+def _verify_ipv4mask(arg):
     """
     Verifies if the supplied ipv4 mask is valid.
     """
-    msg = '--ipv4mask must be in between 1 and 32'
+    msg = 'must be an integer between 1 and 32'
     try:
         mask = int(arg)
     except ValueError:
-        parser.error(msg)
-        return
+        raise argparse.ArgumentTypeError(msg)
 
     if not 0 < mask <= 32:
-        parser.error(msg)
-        return
+        raise argparse.ArgumentTypeError(msg)
 
     return mask
 
 
-def _verify_ipv6mask(parser, arg):
+def _verify_ipv6mask(arg):
     """
     Verify if the supplied ipv6 mask is valid.
     """
-    msg = '--ipv6mask must be in between 1 and 128'
+    msg = 'must be an integer between 1 and 128'
     try:
         mask = int(arg)
     except ValueError:
-        parser.error(msg)
-        return
+        raise argparse.ArgumentTypeError(msg)
 
     if not 0 < mask <= 128:
-        parser.error(msg)
-        return
+        raise argparse.ArgumentTypeError(msg)
 
     return mask
 
 
-def _verify_integer_ht_1(parser, value, name):
+def _verify_integer_ht_1(value):
     """
     Verifies if the supplied column and increment are valid.
     """
-    msg = '--{} must be a positive integer'.format(name)
+    msg = 'must be a positive integer'
     try:
         value = int(value)
     except ValueError:
-        parser.error(msg)
+        raise argparse.ArgumentTypeError(msg)
     if not value >= 1:
-        parser.error(msg)
+        raise argparse.ArgumentTypeError(msg)
     return value
 
 
-def _verify_increment(parser, increment):
-    value = _verify_integer_ht_1(parser, increment, 'increment')
+def _verify_increment(increment):
+    value = _verify_integer_ht_1(increment)
     if value > 2844131327:
-        parser.error("--increment must be an integer between 1 and "
-                     "2844131327")
+        raise argparse.ArgumentTypeError(
+            'must be an integer between 1 and 2844131327')
     return value
+
+
+def set_umask(umask):
+    """
+    Set umask.
+    """
+    try:
+        # use int(umask, 8) in order to not cut the leading zeros
+        os.umask(int(umask, 8))
+    except (SyntaxError, TypeError, ValueError):
+        raise argparse.ArgumentTypeError(
+            '"{}" is not a valid umask'.format(umask))
 
 
 def switch_user(parser, user):
@@ -273,7 +282,6 @@ def switch_group(parser, group):
     try:
         groupdb = getgrnam(group)
         os.setgid(groupdb.gr_gid)
-
     except KeyError:
         parser.error('group "{}" does not exist'.format(group))
 
@@ -281,18 +289,7 @@ def switch_group(parser, group):
         parser.error('could not setgid to "{}"'.format(group))
 
 
-def set_umask(parser, umask):
-    """
-    Set umask.
-    """
-    try:
-        # use int(umask, 8) in order to not cut the leading zeros
-        os.umask(int(umask, 8))
-    except (SyntaxError, TypeError, ValueError):
-        parser.error('"{}" is not a valid umask'.format(umask))
-
-
-def parse_arguments():
+def parse_arguments(args):
     """
     Parse all given arguments.
     """
@@ -305,15 +302,15 @@ def parse_arguments():
 
     parser.add_argument('-4', '--ipv4mask', metavar='INTEGER', help='truncate '
                         'the last n bits (default: %(default)s)',
-                        type=lambda x: _verify_ipv4mask(parser, x))
+                        type=lambda x: _verify_ipv4mask(x))
     parser.set_defaults(ipv4mask=12)
     parser.add_argument('-6', '--ipv6mask',
-                        type=lambda x: _verify_ipv6mask(parser, x),
+                        type=lambda x: _verify_ipv6mask(x),
                         metavar='INTEGER', help='truncate the last n bits '
                         '(default: %(default)s)')
     parser.set_defaults(ipv6mask=84)
     parser.add_argument('-i', '--increment', metavar='INTEGER',
-                        type=lambda x: _verify_increment(parser, x),
+                        type=lambda x: _verify_increment(x),
                         help='increment the IP address by n (default: '
                         '%(default)s)')
     parser.set_defaults(increment=0)
@@ -321,8 +318,7 @@ def parse_arguments():
                         help='file to write to')
     parser.add_argument('-c', '--column', metavar='INTEGER', dest='columns',
                         nargs='+',
-                        type=lambda x: _verify_integer_ht_1(parser, x,
-                                                            'column'),
+                        type=lambda x: _verify_integer_ht_1(x),
                         help='assume IP address is in column n (default: 1)')
     parser.set_defaults(column=[1])
     parser.add_argument('-r', '--replace', metavar='STRING',
@@ -337,13 +333,13 @@ def parse_arguments():
                         type=str)
     parser.add_argument('-m', '--umask', metavar='UMASK',
                         help='set umask',
-                        type=lambda x: set_umask(parser, x))
+                        type=lambda x: set_umask(x))
     parser.add_argument('-d', '--debug', action='store_true', help='print '
                         'debug messages')
     parser.add_argument('-v', '--version', action='version',
                         version=__version__)
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -364,7 +360,7 @@ def main():
     Main CLI function for anonip.
     """
 
-    args = parse_arguments()
+    args = parse_arguments(sys.argv[1:])
 
     anonip = Anonip(args.columns,
                     args.ipv4mask,
