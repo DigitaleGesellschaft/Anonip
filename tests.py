@@ -33,9 +33,16 @@ class TestAnonipClass(unittest.TestCase):
 
     def test_process_line_v4(self):
         ip = '192.168.100.200'
-        ip_port = '192.168.100.200:80'
         self.assertEqual(self.anonip.process_line(ip), '192.168.96.0')
-        self.assertEqual(self.anonip.process_line(ip_port), '192.168.96.0:80')
+        self.assertEqual(self.anonip.process_line(
+            '192.168.100.200:80'),
+            '192.168.96.0:80')
+        self.assertEqual(self.anonip.process_line(
+            '192.168.100.200]'),
+            '192.168.96.0]')
+        self.assertEqual(self.anonip.process_line(
+            '192.168.100.200:80]'),
+            '192.168.96.0:80]')
         self.anonip.ipv4mask = 0
         self.assertEqual(self.anonip.process_line(ip), '192.168.100.200')
         self.anonip.ipv4mask = 4
@@ -53,6 +60,23 @@ class TestAnonipClass(unittest.TestCase):
         ip = '2001:0db8:85a3:0000:0000:8a2e:0370:7334'
         self.assertEqual(self.anonip.process_line(ip),
                          '2001:db8:85a0::')
+
+        self.assertEqual(self.anonip.process_line(
+            '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:443'),
+            '[2001:db8:85a0::]:443')
+
+        self.assertEqual(self.anonip.process_line(
+            '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]'),
+            '[2001:db8:85a0::]')
+
+        self.assertEqual(self.anonip.process_line(
+            '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]]'),
+            '[2001:db8:85a0::]]')
+
+        self.assertEqual(self.anonip.process_line(
+            '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:443]'),
+            '[2001:db8:85a0::]:443]')
+
         self.anonip.ipv6mask = 0
         self.assertEqual(self.anonip.process_line(ip),
                          '2001:db8:85a3::8a2e:370:7334')
@@ -87,6 +111,11 @@ class TestAnonipClass(unittest.TestCase):
         self.anonip.columns = [1, 2, 3]
         self.assertEqual(self.anonip.process_line(DATA['multi4']),
                          DATA_RESULT['multi4'])
+
+    def test_replace(self):
+        self.anonip.replace = 'replacement'
+        self.assertEqual(self.anonip.process_line('something something'),
+                         'replacement something')
 
     def test_delimiter(self):
         self.anonip.delimiter = ';'

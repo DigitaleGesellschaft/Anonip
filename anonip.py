@@ -126,6 +126,13 @@ class Anonip(object):
 
             yield self.process_line(line)
 
+    def process_ip(self, ip):
+        trunc_ip = self.truncate_address(ip)
+        if self.increment:
+            trunc_ip = trunc_ip + self.increment
+
+        return trunc_ip
+
     def process_line(self, line):
         """
         This function processes a single line.
@@ -144,46 +151,60 @@ class Anonip(object):
                 )
                 continue
             else:
-                loglist[decindex] = self.handle_ip_column(loglist[decindex])
+                ip_str, ip = self.extract_ip(loglist[decindex])
+                if ip:
+                    trunc_ip = self.process_ip(ip)
+                    loglist[decindex] = loglist[decindex].replace(
+                        ip_str, str(trunc_ip))
+                elif self.replace:
+                    loglist[decindex] = self.replace
 
         return self.delimiter.join(loglist)
 
-    def handle_ip_column(self, raw_ip):
+    @staticmethod
+    def extract_ip(column):
         """
-        This function extracts the ip from the column and returns the whole
-        column with the ip anonymized.
+        This function extracts the ip from the column and returns it.
 
-        Handles also pptional port as part of the IP.
+        It can handle following ip formats:
+         - 192.168.100.200
+         - 192.168.100.200:80
+         - 192.168.100.200]
+         - 192.168.100.200:80]
+         - 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+         - [2001:0db8:85a3:0000:0000:8a2e:0370:7334]
+         - [2001:0db8:85a3:0000:0000:8a2e:0370:7334]]
+         - [2001:0db8:85a3:0000:0000:8a2e:0370:7334]:443
+         - [2001:0db8:85a3:0000:0000:8a2e:0370:7334]:443]
+
+        :param column: str
+        :return: tuple (ip str, ip object) or (None, None)
         """
+
+        # first we try if the whole column is just the ip
         try:
-            ip = ipaddress.ip_address(raw_ip)
-            port = None
+            ip = ipaddress.ip_address(column)
+            return column, ip
         except ValueError:
+            # then we try if the ip has the port appended and/or a trailing ']'
             try:
-                parsed = urlparse('//{}'.format(raw_ip))
-                ip = ipaddress.ip_address(parsed.hostname)
-                port = parsed.port
+                # strip additional ']' from column. Ugly but functional
+                if (column.startswith('[') and column.endswith(']]')) or (
+                        not column.startswith('[') and column.endswith(']')):
+                    column = column[:-1]
+
+                parsed = urlparse(
+                    '//{}'.format(column))
+                new_column = parsed.hostname
+                ip = ipaddress.ip_address(new_column)
+                return new_column, ip
             except Exception as e:
                 logger.warning(e)
-                if self.replace:
-                    logger.warning('Using replacement string.')
-                    return self.replace
-                else:
-                    return raw_ip
-
-        trunc_ip = self.truncate_address(ip)
-
-        if self.increment:
-            trunc_ip = trunc_ip + self.increment
-
-        if port:
-            trunc_ip = '{}:{}'.format(trunc_ip, port)
-
-        return str(trunc_ip)
+                return None, None
 
     def truncate_address(self, ip):
         """
-        Do the actual masking of the IP addresses
+        Do the actual masking of the IP address
         :param ip: ipaddress object
         :return: ipaddress object
         """
