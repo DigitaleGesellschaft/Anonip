@@ -10,6 +10,7 @@ import unittest
 import anonip
 from io import StringIO
 import sys
+import os
 import argparse
 import logging
 
@@ -25,6 +26,13 @@ DATA_RESULT = {'first4': '192.168.96.0 some string',
                'second4': 'some 192.168.96.0 string',
                'third4': 'some string 192.168.96.0',
                'multi4': '192.168.96.0 192.168.96.0 192.168.96.0'}
+
+
+def remove_file(filename):
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
 
 
 class TestAnonipClass(unittest.TestCase):
@@ -163,6 +171,29 @@ class TestAnonipCli(unittest.TestCase):
         for value in ['0', '2844131328', 'string']:
             self.assertRaises(argparse.ArgumentTypeError,
                               anonip._verify_increment, value)
+
+
+class TestMainWithFile(unittest.TestCase):
+    def setUp(self):
+        self.log_file = '/tmp/anonip.log'
+        if os.path.exists(self.log_file):
+            raise Exception('File "{}" already exists!'.format(self.log_file))
+        self.old_sys_argv = sys.argv
+        sys.argv = ['anonip.py', '-o', self.log_file]
+
+    def tearDown(self):
+        sys.argv = self.old_sys_argv
+        remove_file(self.log_file)
+
+    def test_main_writing_to_file(self):
+        sys.stdin = StringIO(u'192.168.100.200\n1.2.3.4\n\n')
+        anonip.main()
+        self.assertTrue(os.path.exists(self.log_file))
+        with open(self.log_file, 'r') as f:
+            lines = f.readlines()
+
+        self.assertEqual(lines[0], '192.168.96.0\n')
+        self.assertEqual(lines[1], '1.2.0.0\n')
 
 
 if __name__ == '__main__':

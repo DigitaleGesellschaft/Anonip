@@ -31,10 +31,17 @@ for usage with nginx see here: https://github.com/DigitaleGesellschaft/Anonip/is
  - The column containing the IP-address can freely be chosen
  - Works for both access.log- and error.log-files
 
-## Dependencies
-If you're using python version 3, there are no external dependencies.
+## Officially supported python versions
+ - 2.7
+ - 3.5
+ - 3.6
+ - 3.7
 
-For python version 2:
+## Dependencies
+If you're using python version >=3.3, there are no external
+dependencies.
+
+For python versions <3.3:
  - [ipaddress module](https://bitbucket.org/kwi/py2-ipaddress/)
 
 ## Invocation

@@ -215,6 +215,7 @@ class Anonip(object):
 
         return ip.supernet(new_prefix=mask)[0]
 
+
 def _verify_ipv4mask(arg):
     """
     Verifies if the supplied ipv4 mask is valid.
