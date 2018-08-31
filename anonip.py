@@ -183,7 +183,7 @@ class Anonip(object):
 
         # first we try if the whole column is just the ip
         try:
-            ip = ipaddress.ip_address(column)
+            ip = ipaddress.ip_network(column)
             return column, ip
         except ValueError:
             # then we try if the ip has the port appended and/or a trailing ']'
@@ -196,7 +196,7 @@ class Anonip(object):
                 parsed = urlparse(
                     '//{}'.format(column))
                 new_column = parsed.hostname
-                ip = ipaddress.ip_address(new_column)
+                ip = ipaddress.ip_network(new_column)
                 return new_column, ip
             except Exception as e:
                 logger.warning(e)
@@ -213,11 +213,7 @@ class Anonip(object):
         else:
             mask = 128 - self.ipv6mask
 
-        trunc_ip = ipaddress.ip_interface(
-            '{}/{}'.format(ip, mask)).network.network_address
-
-        return trunc_ip
-
+        return ip.supernet(new_prefix=mask)[0]
 
 def _verify_ipv4mask(arg):
     """
