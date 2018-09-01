@@ -119,6 +119,17 @@ for line in data:
 
 ```
 
+### Python 2 or 3?
+For compatibility reasons, anonip uses the shebang `#! /usr/bin/env python`.
+This will default to python2 on all Linux distributions except for Arch Linux.
+The performance of anonip can be improved by running it with python3. So on
+distributions where python3 is available, you should preferrably invoke anonip
+like this:
+
+``` shell
+python3 /path/to/anonip.py
+```
+
 ## Motivation
 
 In a time, where the mass-data-collection of certain companies and

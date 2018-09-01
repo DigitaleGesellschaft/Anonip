@@ -216,7 +216,7 @@ class Anonip(object):
         return ip.supernet(new_prefix=mask)[0]
 
 
-def _verify_ipv4mask(arg):
+def _validate_ipv4mask(arg):
     """
     Verifies if the supplied ipv4 mask is valid.
     """
@@ -232,7 +232,7 @@ def _verify_ipv4mask(arg):
     return mask
 
 
-def _verify_ipv6mask(arg):
+def _validate_ipv6mask(arg):
     """
     Verify if the supplied ipv6 mask is valid.
     """
@@ -248,9 +248,11 @@ def _verify_ipv6mask(arg):
     return mask
 
 
-def _verify_integer_ht_1(value):
+def _validate_integer_ht_0(value):
     """
-    Verifies if the supplied column and increment are valid.
+    Validate if given string is a number higher than 0.
+    :param value: str or int
+    :return: int
     """
     msg = 'must be a positive integer'
     try:
@@ -262,57 +264,92 @@ def _verify_integer_ht_1(value):
     return value
 
 
-def _verify_increment(increment):
-    value = _verify_integer_ht_1(increment)
+def _validate_increment(increment):
+    """
+    Validate the given increment.
+    :param increment: str or int
+    :return: int
+    """
+    value = _validate_integer_ht_0(increment)
     if value > 2844131327:
         raise argparse.ArgumentTypeError(
             'must be an integer between 1 and 2844131327')
     return value
 
 
+def _validate_umask(umask):
+    """
+    Validate the given umask.
+    :param umask: str
+    :return: int
+    """
+    msg = '"{}" is not a valid umask'.format(umask)
+    try:
+        umask = int(umask, 8)
+    except (SyntaxError, TypeError, ValueError):
+        raise argparse.ArgumentTypeError(msg)
+    else:
+        if umask < 0 > 511:
+            raise argparse.ArgumentTypeError(msg)
+        return umask
+
+
 def set_umask(umask):
     """
     Set umask.
+
+    :param umask: int
+    :return: True if successful, False otherwise
     """
     try:
-        # use int(umask, 8) in order to not cut the leading zeros
-        os.umask(int(umask, 8))
-    except (SyntaxError, TypeError, ValueError):
-        raise argparse.ArgumentTypeError(
-            '"{}" is not a valid umask'.format(umask))
+        os.umask(umask)
+    except (SyntaxError, TypeError, ValueError) as e:
+        "Couldn't set umask \"{}\": {}".format(umask, e)
+        return False
+    else:
+        return True
 
 
-def switch_user(parser, user):
+def switch_user(user):
     """
-    Switch UID
+    Switch UID.
+
+    :param user: str
+    :return: None if successful, str otherwise
     """
     try:
         userdb = getpwnam(user)
         os.setuid(userdb.pw_uid)
     except KeyError:
-        parser.error('user "{}" does not exist'.format(user))
+        return 'user "{}" does not exist'.format(user)
 
     except OSError:
-        parser.error('could not setuid to "{}"'.format(user))
+        return 'could not setuid to "{}"'.format(user)
 
 
-def switch_group(parser, group):
+def switch_group(group):
     """
-    Switch GID
+    Switch GID.
+
+    :param group: str
+    :return: None if successful, str otherwise
     """
     try:
         groupdb = getgrnam(group)
         os.setgid(groupdb.gr_gid)
     except KeyError:
-        parser.error('group "{}" does not exist'.format(group))
+        return 'group "{}" does not exist'.format(group)
 
     except OSError:
-        parser.error('could not setgid to "{}"'.format(group))
+        return 'could not setgid to "{}"'.format(group)
 
 
 def parse_arguments(args):
     """
     Parse all given arguments.
+
+    :param args: list
+    :return: argparse.Namespace
     """
     parser = argparse.ArgumentParser(description='An ip address anonymizer.',
                                      epilog='Example-usage in apache-config:\n'
@@ -323,15 +360,15 @@ def parse_arguments(args):
 
     parser.add_argument('-4', '--ipv4mask', metavar='INTEGER', help='truncate '
                         'the last n bits (default: %(default)s)',
-                        type=lambda x: _verify_ipv4mask(x))
+                        type=lambda x: _validate_ipv4mask(x))
     parser.set_defaults(ipv4mask=12)
     parser.add_argument('-6', '--ipv6mask',
-                        type=lambda x: _verify_ipv6mask(x),
+                        type=lambda x: _validate_ipv6mask(x),
                         metavar='INTEGER', help='truncate the last n bits '
                         '(default: %(default)s)')
     parser.set_defaults(ipv6mask=84)
     parser.add_argument('-i', '--increment', metavar='INTEGER',
-                        type=lambda x: _verify_increment(x),
+                        type=lambda x: _validate_increment(x),
                         help='increment the IP address by n (default: '
                         '%(default)s)')
     parser.set_defaults(increment=0)
@@ -339,7 +376,7 @@ def parse_arguments(args):
                         help='file to write to')
     parser.add_argument('-c', '--column', metavar='INTEGER', dest='columns',
                         nargs='+',
-                        type=lambda x: _verify_integer_ht_1(x),
+                        type=lambda x: _validate_integer_ht_0(x),
                         help='assume IP address is in column n (default: 1)')
     parser.set_defaults(column=[1])
     parser.add_argument('-l', '--delimiter', metavar='STRING', type=str,
@@ -357,7 +394,7 @@ def parse_arguments(args):
                         type=str)
     parser.add_argument('-m', '--umask', metavar='UMASK',
                         help='set umask',
-                        type=lambda x: set_umask(x))
+                        type=lambda x: _validate_umask(x))
     parser.add_argument('-d', '--debug', action='store_true', help='print '
                         'debug messages')
     parser.add_argument('-v', '--version', action='version',
@@ -365,16 +402,15 @@ def parse_arguments(args):
 
     args = parser.parse_args(args)
 
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig()
-
     if args.group:
-        switch_group(parser, args.group)
+        err = switch_group(args.group)
+        if err:
+            parser.error(err)
 
     if args.user:
-        switch_user(parser, args.user)
+        err = switch_user(args.user)
+        if err:
+            parser.error(err)
 
     return args
 
@@ -385,6 +421,15 @@ def main():
     """
 
     args = parse_arguments(sys.argv[1:])
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig()
+
+    if args.umask:
+        if not set_umask(args.umask):
+            return
 
     anonip = Anonip(args.columns,
                     args.ipv4mask,

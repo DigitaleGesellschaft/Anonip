@@ -14,18 +14,19 @@ import os
 import argparse
 import logging
 
+
 # Keep the output clean
-logging.basicConfig(level=logging.ERROR)
+logging.disable(logging.CRITICAL)
 
 DATA = {'first4': '192.168.100.200 some string',
         'second4': 'some 192.168.100.200 string',
         'third4': 'some string 192.168.100.200',
-        'multi4': '192.168.100.200 192.168.100.200 192.168.100.200'}
+        'multi4': '192.168.100.200 192.168.11.222 192.168.123.234'}
 
 DATA_RESULT = {'first4': '192.168.96.0 some string',
                'second4': 'some 192.168.96.0 string',
                'third4': 'some string 192.168.96.0',
-               'multi4': '192.168.96.0 192.168.96.0 192.168.96.0'}
+               'multi4': '192.168.96.0 192.168.0.0 192.168.112.0'}
 
 
 def remove_file(filename):
@@ -142,35 +143,52 @@ class TestAnonipClass(unittest.TestCase):
 
 
 class TestAnonipCli(unittest.TestCase):
-    def test_parse_arguments(self):
+    def test_columns_arg(self):
         self.assertEqual(anonip.parse_arguments(['-c', '3', '5']).columns,
                          [3, 5])
+
+    def test_ipv4mask_arg(self):
         self.assertEqual(anonip.parse_arguments(['-4', '24']).ipv4mask, 24)
+
+    def test_ipv6mask_arg(self):
         self.assertEqual(anonip.parse_arguments(['-6', '64']).ipv6mask, 64)
 
-    def test_verify_ipv4mask(self):
-        self.assertEqual(anonip._verify_ipv4mask('1'), 1)
+    def test_umask_arg(self):
+        self.assertEqual(anonip.parse_arguments(['-m', '044']).umask, 36)
+
+    def test_set_umask(self):
+        self.assertFalse(anonip.set_umask('no umask'))
+        self.assertTrue(anonip.set_umask(36))
+        self.assertEqual(os.umask(0), 36)
+
+    def test_validate_ipv4mask(self):
+        self.assertEqual(anonip._validate_ipv4mask('1'), 1)
         for value in ['0', '33', 'string']:
             self.assertRaises(argparse.ArgumentTypeError,
-                              anonip._verify_ipv4mask, value)
+                              anonip._validate_ipv4mask, value)
 
-    def test_verify_ipv6mask(self):
-        self.assertEqual(anonip._verify_ipv6mask('1'), 1)
+    def test_validate_ipv6mask(self):
+        self.assertEqual(anonip._validate_ipv6mask('1'), 1)
         for value in ['0', '129', 'string']:
             self.assertRaises(argparse.ArgumentTypeError,
-                              anonip._verify_ipv6mask, value)
+                              anonip._validate_ipv6mask, value)
 
-    def test_verify_integer_ht_1(self):
+    def test_validate_umask(self):
+        self.assertEqual(anonip._validate_umask('022'), 18)
+        self.assertRaises(argparse.ArgumentTypeError,
+                          anonip._validate_umask, '028')
+
+    def test_validate_integer_ht_0(self):
         for value in ['0', 'string']:
-            self.assertEqual(anonip._verify_integer_ht_1('1'), 1)
+            self.assertEqual(anonip._validate_integer_ht_0('1'), 1)
             self.assertRaises(argparse.ArgumentTypeError,
-                              anonip._verify_integer_ht_1, value)
+                              anonip._validate_integer_ht_0, value)
 
-    def test_verify_increment(self):
-        self.assertEqual(anonip._verify_increment('1'), 1)
+    def test_validate_increment(self):
+        self.assertEqual(anonip._validate_increment('1'), 1)
         for value in ['0', '2844131328', 'string']:
             self.assertRaises(argparse.ArgumentTypeError,
-                              anonip._verify_increment, value)
+                              anonip._validate_increment, value)
 
 
 class TestMainWithFile(unittest.TestCase):
