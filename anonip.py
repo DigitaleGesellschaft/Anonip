@@ -456,7 +456,8 @@ def main():
                     args.ipv6mask,
                     args.increment,
                     args.delimiter,
-                    args.replace)
+                    args.replace,
+                    args.private)
 
     if args.output:
         try:
