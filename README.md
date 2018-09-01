@@ -48,7 +48,7 @@ For python versions <3.3:
 
 ```
 usage: anonip.py [-h] [-4 INTEGER] [-6 INTEGER] [-i INTEGER] [-o FILE]
-                 [-c INTEGER [INTEGER ...]] [-l STRING] [-r STRING]
+                 [-c INTEGER [INTEGER ...]] [-l STRING] [-r STRING] [-p]
                  [-u USERNAME] [-g GROUPNAME] [-m UMASK] [-d] [-v]
 
 An ip address anonymizer.
@@ -70,6 +70,7 @@ optional arguments:
   -r STRING, --replace STRING
                         replacement string in case address parsing fails
                         Example: 0.0.0.0)
+  -p, --private         do not mask addresses in private ranges
   -u USERNAME, --user USERNAME
                         switch user id
   -g GROUPNAME, --group GROUPNAME

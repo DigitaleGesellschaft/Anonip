@@ -49,10 +49,11 @@ except ImportError:
           file=sys.stderr)
     sys.exit(1)
 try:
+    # noinspection PyUnresolvedReferences,PyCompatibility
     from urllib.parse import urlparse
 except ImportError:
     # compatibility for python < 3
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,PyCompatibility
     from urlparse import urlparse
 import logging
 from grp import getgrnam
@@ -75,7 +76,8 @@ class Anonip(object):
                  ipv6mask=84,
                  increment=0,
                  delimiter=' ',
-                 replace=None):
+                 replace=None,
+                 private=True):
         """
         Main class for anonip.
 
@@ -85,6 +87,7 @@ class Anonip(object):
         :param increment: int
         :param delimiter: str
         :param replace: str
+        :param private: bool
         """
         self.columns = columns if columns else [1]
         self.ipv4mask = ipv4mask
@@ -92,6 +95,7 @@ class Anonip(object):
         self.increment = increment
         self.delimiter = delimiter
         self.replace = replace
+        self.private = private
 
     def run(self):
         """
@@ -127,17 +131,28 @@ class Anonip(object):
             yield self.process_line(line)
 
     def process_ip(self, ip):
-        trunc_ip = self.truncate_address(ip)
-        if self.increment:
-            trunc_ip = trunc_ip + self.increment
+        """
+        Pricess a single ip.
 
-        return trunc_ip
+        :param ip: /32 ipaddress.IPv4Network or /128 ipaddress.IPv6Network
+        :return: ipaddress.IPv4Address or ipaddress.IPv6Address
+        """
+        if not self.private and ip[0].is_private:
+            return ip[0]
+        else:
+            trunc_ip = self.truncate_address(ip)
+            if self.increment:
+                trunc_ip = trunc_ip + self.increment
+            return trunc_ip
 
     def process_line(self, line):
         """
         This function processes a single line.
 
         It returns the anonymized log line as string.
+
+        :param line: str
+        :return: str
         """
         loglist = line.split(self.delimiter)
 
@@ -178,7 +193,10 @@ class Anonip(object):
          - [2001:0db8:85a3:0000:0000:8a2e:0370:7334]:443]
 
         :param column: str
-        :return: tuple (ip str, ip object) or (None, None)
+        :return: tuple (
+                ip str,
+                /32 ipaddress.IPv4Network or /128 ipaddress.IPv6Network) or
+                (None, None)
         """
 
         # first we try if the whole column is just the ip
@@ -385,6 +403,8 @@ def parse_arguments(args):
     parser.add_argument('-r', '--replace', metavar='STRING',
                         help='replacement string in case address parsing fails'
                         ' Example: 0.0.0.0)')
+    parser.add_argument('-p', '--private', action='store_false',
+                        help='do not mask addresses in private ranges')
     parser.set_defaults(replace=None)
     parser.add_argument('-u', '--user', metavar='USERNAME',
                         help='switch user id',

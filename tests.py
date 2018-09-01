@@ -133,6 +133,15 @@ class TestAnonipClass(unittest.TestCase):
             self.anonip.process_line(DATA['second4'].replace(' ', ';')),
             DATA_RESULT['second4'].replace(' ', ';'))
 
+    def test_private(self):
+        self.anonip.private = False
+        self.assertEqual(self.anonip.process_line(
+            '192.168.100.200'),
+            '192.168.100.200')
+        self.assertEqual(self.anonip.process_line(
+            'fd9e:21a7:a92c:2323::1'),
+            'fd9e:21a7:a92c:2323::1')
+
     def test_run(self):
         sys.stdin = StringIO(u'192.168.100.200\n1.2.3.4\n\n')
         lines = []
