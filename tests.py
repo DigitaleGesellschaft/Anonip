@@ -206,21 +206,37 @@ class TestMainWithFile(unittest.TestCase):
         if os.path.exists(self.log_file):
             raise Exception('File "{}" already exists!'.format(self.log_file))
         self.old_sys_argv = sys.argv
-        sys.argv = ['anonip.py', '-o', self.log_file]
+        sys.argv = ['anonip.py',
+                    '-o', self.log_file,
+                    '-c', '2',
+                    '-4', '12',
+                    '-6', '42',
+                    '-i', '1',
+                    '-l', ';',
+                    '-r', 'replace',
+                    '-p']
 
     def tearDown(self):
         sys.argv = self.old_sys_argv
         remove_file(self.log_file)
 
     def test_main_writing_to_file(self):
-        sys.stdin = StringIO(u'192.168.100.200\n1.2.3.4\n\n')
+        sys.stdin = StringIO(
+            u'string;192.168.100.200\n'
+            u'string;1.2.3.4\n'
+            u'string;2001:0db8:85a3:0000:0000:8a2e:0370:7334\n'
+            u'string;2a00:1450:400a:803::200e\n'
+            u'string;string\n\n')
         anonip.main()
         self.assertTrue(os.path.exists(self.log_file))
         with open(self.log_file, 'r') as f:
             lines = f.readlines()
 
-        self.assertEqual(lines[0], '192.168.96.0\n')
-        self.assertEqual(lines[1], '1.2.0.0\n')
+        self.assertEqual(lines[0], 'string;192.168.100.200\n')
+        self.assertEqual(lines[1], 'string;1.2.0.1\n')
+        self.assertEqual(lines[2], 'string;2001:db8:85a3::8a2e:370:7334\n')
+        self.assertEqual(lines[3], 'string;2a00:1450:400a:803::1\n')
+        self.assertEqual(lines[4], 'string;replace\n')
 
 
 if __name__ == '__main__':
