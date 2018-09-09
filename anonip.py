@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-An ip address anonymizer
+An IP address anonymizer
 Digitale Gesellschaft
 https://www.digitale-gesellschaft.ch.
 Special thanks to: Thomas B. and Fabio R.
@@ -299,7 +299,7 @@ def parse_arguments(args):
     :param args: list
     :return: argparse.Namespace
     """
-    parser = argparse.ArgumentParser(description='An ip address anonymizer.',
+    parser = argparse.ArgumentParser(description=__description__ ,
                                      epilog='Example-usage in apache-config:\n'
                                      'CustomLog "| /path/to/anonip.py '
                                      '[OPTIONS] --output /path/to/log" '
