@@ -48,8 +48,8 @@ For python versions <3.3:
 
 ```
 usage: anonip.py [-h] [-4 INTEGER] [-6 INTEGER] [-i INTEGER] [-o FILE]
-                 [-c INTEGER [INTEGER ...]] [-l STRING] [-r STRING] [-p]
-                 [-u USERNAME] [-g GROUPNAME] [-m UMASK] [-d] [-v]
+                 [-c INTEGER [INTEGER ...]] [-l STRING] [-r STRING] [-p] [-d]
+                 [-v]
 
 An ip address anonymizer.
 
@@ -72,12 +72,6 @@ optional arguments:
                         Example: 0.0.0.0)
   -p, --skip-private    do not mask addresses in private ranges. See IANA
                         Special-Purpose Address Registry.
-  -u USERNAME, --user USERNAME
-                        switch user id
-  -g GROUPNAME, --group GROUPNAME
-                        switch group id
-  -m UMASK, --umask UMASK
-                        set umask
   -d, --debug           print debug messages
   -v, --version         show program's version number and exit
 ```

@@ -38,7 +38,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import unicode_literals, print_function
 import sys
-import os
 from io import open
 import argparse
 try:
@@ -56,13 +55,11 @@ except ImportError:
     # noinspection PyUnresolvedReferences,PyCompatibility
     from urlparse import urlparse
 import logging
-from grp import getgrnam
-from pwd import getpwnam
 
 
 __title__ = 'anonip'
 __description__ = 'Anonip is a tool to anonymize IP-addresses in log-files.'
-__version__ = '0.6.0'
+__version__ = '1.0.0'
 __license__ = 'BSD'
 __author__ = 'Digitale Gesellschaft'
 
@@ -295,73 +292,6 @@ def _validate_increment(increment):
     return value
 
 
-def _validate_umask(umask):
-    """
-    Validate the given umask.
-    :param umask: str
-    :return: int
-    """
-    msg = '"{}" is not a valid umask'.format(umask)
-    try:
-        umask = int(umask, 8)
-    except (SyntaxError, TypeError, ValueError):
-        raise argparse.ArgumentTypeError(msg)
-    else:
-        if umask < 0 > 511:
-            raise argparse.ArgumentTypeError(msg)
-        return umask
-
-
-def set_umask(umask):
-    """
-    Set umask.
-
-    :param umask: int
-    :return: True if successful, False otherwise
-    """
-    try:
-        os.umask(umask)
-    except (SyntaxError, TypeError, ValueError) as e:
-        "Couldn't set umask \"{}\": {}".format(umask, e)
-        return False
-    else:
-        return True
-
-
-def switch_user(user):
-    """
-    Switch UID.
-
-    :param user: str
-    :return: None if successful, str otherwise
-    """
-    try:
-        userdb = getpwnam(user)
-        os.setuid(userdb.pw_uid)
-    except KeyError:
-        return 'user "{}" does not exist'.format(user)
-
-    except OSError:
-        return 'could not setuid to "{}"'.format(user)
-
-
-def switch_group(group):
-    """
-    Switch GID.
-
-    :param group: str
-    :return: None if successful, str otherwise
-    """
-    try:
-        groupdb = getgrnam(group)
-        os.setgid(groupdb.gr_gid)
-    except KeyError:
-        return 'group "{}" does not exist'.format(group)
-
-    except OSError:
-        return 'could not setgid to "{}"'.format(group)
-
-
 def parse_arguments(args):
     """
     Parse all given arguments.
@@ -407,32 +337,12 @@ def parse_arguments(args):
                         action='store_true',
                         help='do not mask addresses in private ranges. '
                              'See IANA Special-Purpose Address Registry.')
-    parser.set_defaults(replace=None)
-    parser.add_argument('-u', '--user', metavar='USERNAME',
-                        help='switch user id',
-                        type=str)
-    parser.add_argument('-g', '--group', metavar='GROUPNAME',
-                        help='switch group id',
-                        type=str)
-    parser.add_argument('-m', '--umask', metavar='UMASK',
-                        help='set umask',
-                        type=lambda x: _validate_umask(x))
     parser.add_argument('-d', '--debug', action='store_true', help='print '
                         'debug messages')
     parser.add_argument('-v', '--version', action='version',
                         version=__version__)
 
     args = parser.parse_args(args)
-
-    if args.group:
-        err = switch_group(args.group)
-        if err:
-            parser.error(err)
-
-    if args.user:
-        err = switch_user(args.user)
-        if err:
-            parser.error(err)
 
     return args
 
@@ -441,17 +351,12 @@ def main():
     """
     Main CLI function for anonip.
     """
-
     args = parse_arguments(sys.argv[1:])
 
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig()
-
-    if args.umask:
-        if not set_umask(args.umask):
-            return
 
     anonip = Anonip(args.columns,
                     args.ipv4mask,

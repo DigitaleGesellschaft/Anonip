@@ -162,14 +162,6 @@ class TestAnonipCli(unittest.TestCase):
     def test_ipv6mask_arg(self):
         self.assertEqual(anonip.parse_arguments(['-6', '64']).ipv6mask, 64)
 
-    def test_umask_arg(self):
-        self.assertEqual(anonip.parse_arguments(['-m', '044']).umask, 36)
-
-    def test_set_umask(self):
-        self.assertFalse(anonip.set_umask('no umask'))
-        self.assertTrue(anonip.set_umask(36))
-        self.assertEqual(os.umask(0), 36)
-
     def test_validate_ipv4mask(self):
         self.assertEqual(anonip._validate_ipv4mask('1'), 1)
         for value in ['0', '33', 'string']:
@@ -181,11 +173,6 @@ class TestAnonipCli(unittest.TestCase):
         for value in ['0', '129', 'string']:
             self.assertRaises(argparse.ArgumentTypeError,
                               anonip._validate_ipv6mask, value)
-
-    def test_validate_umask(self):
-        self.assertEqual(anonip._validate_umask('022'), 18)
-        self.assertRaises(argparse.ArgumentTypeError,
-                          anonip._validate_umask, '028')
 
     def test_validate_integer_ht_0(self):
         for value in ['0', 'string']:
