@@ -77,7 +77,7 @@ class Anonip(object):
                  increment=0,
                  delimiter=' ',
                  replace=None,
-                 private=True):
+                 skip_private=False):
         """
         Main class for anonip.
 
@@ -87,7 +87,7 @@ class Anonip(object):
         :param increment: int
         :param delimiter: str
         :param replace: str
-        :param private: bool
+        :param skip_private: bool
         """
         self.columns = columns if columns else [1]
         self.ipv4mask = ipv4mask
@@ -95,7 +95,7 @@ class Anonip(object):
         self.increment = increment
         self.delimiter = delimiter
         self.replace = replace
-        self.private = private
+        self.skip_private = skip_private
 
     def run(self):
         """
@@ -137,7 +137,7 @@ class Anonip(object):
         :param ip: /32 ipaddress.IPv4Network or /128 ipaddress.IPv6Network
         :return: ipaddress.IPv4Address or ipaddress.IPv6Address
         """
-        if not self.private and ip[0].is_private:
+        if self.skip_private and ip[0].is_private:
             return ip[0]
         else:
             trunc_ip = self.truncate_address(ip)
@@ -403,8 +403,10 @@ def parse_arguments(args):
     parser.add_argument('-r', '--replace', metavar='STRING',
                         help='replacement string in case address parsing fails'
                         ' Example: 0.0.0.0)')
-    parser.add_argument('-p', '--private', action='store_false',
-                        help='do not mask addresses in private ranges')
+    parser.add_argument('-p', '--skip-private', dest='skip_private',
+                        action='store_true',
+                        help='do not mask addresses in private ranges. '
+                             'See IANA Special-Purpose Address Registry.')
     parser.set_defaults(replace=None)
     parser.add_argument('-u', '--user', metavar='USERNAME',
                         help='switch user id',
@@ -457,7 +459,7 @@ def main():
                     args.increment,
                     args.delimiter,
                     args.replace,
-                    args.private)
+                    args.skip_private)
 
     if args.output:
         try:

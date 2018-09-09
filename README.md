@@ -70,7 +70,8 @@ optional arguments:
   -r STRING, --replace STRING
                         replacement string in case address parsing fails
                         Example: 0.0.0.0)
-  -p, --private         do not mask addresses in private ranges
+  -p, --skip-private    do not mask addresses in private ranges. See IANA
+                        Special-Purpose Address Registry.
   -u USERNAME, --user USERNAME
                         switch user id
   -g GROUPNAME, --group GROUPNAME

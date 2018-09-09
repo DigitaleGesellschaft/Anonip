@@ -134,7 +134,7 @@ class TestAnonipClass(unittest.TestCase):
             DATA_RESULT['second4'].replace(' ', ';'))
 
     def test_private(self):
-        self.anonip.private = False
+        self.anonip.skip_private = True
         self.assertEqual(self.anonip.process_line(
             '192.168.100.200'),
             '192.168.100.200')
