@@ -64,6 +64,7 @@ __license__ = 'BSD'
 __author__ = 'Digitale Gesellschaft'
 
 logger = logging.getLogger(__name__)
+logging.basicConfig()
 
 
 class Anonip(object):
@@ -118,10 +119,6 @@ class Anonip(object):
             # exit the loop
             if not line:
                 break
-
-            # ignore empty lines
-            if line == '\n':
-                continue
 
             logger.debug('Got line: {}'.format(line))
 
@@ -299,7 +296,7 @@ def parse_arguments(args):
     :param args: list
     :return: argparse.Namespace
     """
-    parser = argparse.ArgumentParser(description=__description__ ,
+    parser = argparse.ArgumentParser(description=__description__,
                                      epilog='Example-usage in apache-config:\n'
                                      'CustomLog "| /path/to/anonip.py '
                                      '[OPTIONS] --output /path/to/log" '
@@ -354,9 +351,9 @@ def main():
     args = parse_arguments(sys.argv[1:])
 
     if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+        logger.level = logging.DEBUG
     else:
-        logging.basicConfig()
+        logger.level = logging.WARNING
 
     anonip = Anonip(args.columns,
                     args.ipv4mask,

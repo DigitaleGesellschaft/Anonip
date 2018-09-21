@@ -6,9 +6,11 @@ Unittests for anonip.
 """
 
 
+from __future__ import unicode_literals, print_function
 import unittest
 import anonip
 from io import StringIO
+from contextlib import contextmanager
 import sys
 import os
 import argparse
@@ -18,14 +20,14 @@ import logging
 # Keep the output clean
 logging.disable(logging.CRITICAL)
 
-DATA = {'first4': '192.168.100.200 some string',
-        'second4': 'some 192.168.100.200 string',
-        'third4': 'some string 192.168.100.200',
+DATA = {'first4': '192.168.100.200 some string with öéäü',
+        'second4': 'some 192.168.100.200 string with öéäü',
+        'third4': 'some string 192.168.100.200 with öéäü',
         'multi4': '192.168.100.200 192.168.11.222 192.168.123.234'}
 
-DATA_RESULT = {'first4': '192.168.96.0 some string',
-               'second4': 'some 192.168.96.0 string',
-               'third4': 'some string 192.168.96.0',
+DATA_RESULT = {'first4': '192.168.96.0 some string with öéäü',
+               'second4': 'some 192.168.96.0 string with öéäü',
+               'third4': 'some string 192.168.96.0 with öéäü',
                'multi4': '192.168.96.0 192.168.0.0 192.168.112.0'}
 
 
@@ -34,6 +36,17 @@ def remove_file(filename):
         os.remove(filename)
     except OSError:
         pass
+
+
+@contextmanager
+def captured_output():
+    new_out, new_err = StringIO(), StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = new_out, new_err
+        yield sys.stdout, sys.stderr
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
 
 
 class TestAnonipClass(unittest.TestCase):
@@ -120,6 +133,9 @@ class TestAnonipClass(unittest.TestCase):
         self.anonip.columns = [1, 2, 3]
         self.assertEqual(self.anonip.process_line(DATA['multi4']),
                          DATA_RESULT['multi4'])
+        self.anonip.columns = [9999]
+        self.assertEqual(self.anonip.process_line(DATA['multi4']),
+                         DATA['multi4'])
 
     def test_replace(self):
         self.anonip.replace = 'replacement'
@@ -194,7 +210,6 @@ class TestMainWithFile(unittest.TestCase):
             raise Exception('File "{}" already exists!'.format(self.log_file))
         self.old_sys_argv = sys.argv
         sys.argv = ['anonip.py',
-                    '-o', self.log_file,
                     '-c', '2',
                     '-4', '12',
                     '-6', '42',
@@ -207,7 +222,8 @@ class TestMainWithFile(unittest.TestCase):
         sys.argv = self.old_sys_argv
         remove_file(self.log_file)
 
-    def test_main_writing_to_file(self):
+    def test_main_writing_to_file_debug(self):
+        sys.argv += ['-o', self.log_file, '-d']
         sys.stdin = StringIO(
             u'string;192.168.100.200\n'
             u'string;1.2.3.4\n'
@@ -215,6 +231,7 @@ class TestMainWithFile(unittest.TestCase):
             u'string;2a00:1450:400a:803::200e\n'
             u'string;string\n\n')
         anonip.main()
+
         self.assertTrue(os.path.exists(self.log_file))
         with open(self.log_file, 'r') as f:
             lines = f.readlines()
@@ -224,6 +241,29 @@ class TestMainWithFile(unittest.TestCase):
         self.assertEqual(lines[2], 'string;2001:db8:85a3::8a2e:370:7334\n')
         self.assertEqual(lines[3], 'string;2a00:1450:400a:803::1\n')
         self.assertEqual(lines[4], 'string;replace\n')
+
+        logger = logging.getLogger('anonip')
+        self.assertEqual(logger.level, 10)
+
+    def test_main_to_stdout_no_debug(self):
+        sys.stdin = StringIO(
+            u'string;192.168.100.200\n'
+            u'string;1.2.3.4\n'
+            u'string;2001:0db8:85a3:0000:0000:8a2e:0370:7334\n'
+            u'string;2a00:1450:400a:803::200e\n'
+            u'string;string\n\n')
+        with captured_output() as (out, err):
+            anonip.main()
+        lines = out.getvalue().split('\n')
+
+        self.assertEqual(lines[0], 'string;192.168.100.200')
+        self.assertEqual(lines[1], 'string;1.2.0.1')
+        self.assertEqual(lines[2], 'string;2001:db8:85a3::8a2e:370:7334')
+        self.assertEqual(lines[3], 'string;2a00:1450:400a:803::1')
+        self.assertEqual(lines[4], 'string;replace')
+
+        logger = logging.getLogger('anonip')
+        self.assertEqual(logger.level, 30)
 
 
 if __name__ == '__main__':

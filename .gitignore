@@ -16,7 +16,9 @@ pyenv27.bak/
 
 # tests
 .tox/
+.pytest_cache/
 .coverage
+*,cover
 
 # idea
 .idea/
