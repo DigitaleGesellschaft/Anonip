@@ -1,4 +1,5 @@
 # anonip.py
+[![Build Status](https://travis-ci.com/DigitaleGesellschaft/Anonip.svg?branch=master)](https://travis-ci.com/DigitaleGesellschaft/Anonip)
 
 Digitale Gesellschaft
 https://www.digitale-gesellschaft.ch
