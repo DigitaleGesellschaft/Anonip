@@ -23,7 +23,7 @@ addresses are never written to any file.
 
 With the help of cat, it's also possible, to rewrite existing log-files.
 
-for usage with nginx see here: https://github.com/DigitaleGesellschaft/Anonip/issues/1
+For usage with nginx see here: https://github.com/DigitaleGesellschaft/Anonip/issues/1
 
 ## Features
 
@@ -79,7 +79,7 @@ optional arguments:
 
 ## Usage
 
-In the Apache configuration (or the one of the vhost) the log-output needs to
+In the Apache configuration (or the one of a vhost) the log-output needs to
 get piped to anonip:
 ```
 CustomLog "|/path/to/anonip.py [OPTIONS] --output /path/to/log" combined

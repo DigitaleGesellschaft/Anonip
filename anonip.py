@@ -136,7 +136,13 @@ class Anonip(object):
         else:
             trunc_ip = self.truncate_address(ip)
             if self.increment:
-                trunc_ip = trunc_ip + self.increment
+                try:
+                    trunc_ip = trunc_ip + self.increment
+                except ipaddress.AddressValueError:
+                    logger.error(
+                        'Could not increment IP {} by {}'.format(
+                            trunc_ip,
+                            self.increment))
             return trunc_ip
 
     def process_line(self, line):
@@ -276,19 +282,6 @@ def _validate_integer_ht_0(value):
     return value
 
 
-def _validate_increment(increment):
-    """
-    Validate the given increment.
-    :param increment: str or int
-    :return: int
-    """
-    value = _validate_integer_ht_0(increment)
-    if value > 2844131327:
-        raise argparse.ArgumentTypeError(
-            'must be an integer between 1 and 2844131327')
-    return value
-
-
 def parse_arguments(args):
     """
     Parse all given arguments.
@@ -313,7 +306,7 @@ def parse_arguments(args):
                         '(default: %(default)s)')
     parser.set_defaults(ipv6mask=84)
     parser.add_argument('-i', '--increment', metavar='INTEGER',
-                        type=lambda x: _validate_increment(x),
+                        type=lambda x: _validate_integer_ht_0(x),
                         help='increment the IP address by n (default: '
                         '%(default)s)')
     parser.set_defaults(increment=0)

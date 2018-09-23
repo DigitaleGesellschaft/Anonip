@@ -121,6 +121,16 @@ class TestAnonipClass(unittest.TestCase):
         self.assertEqual(self.anonip.process_line(ip),
                          '::')
 
+    def test_increment(self):
+        self.anonip.increment = 3
+        self.assertEqual(self.anonip.process_line(
+            '192.168.100.200'),
+            '192.168.96.3')
+        self.anonip.increment = 284414028745874325
+        self.assertEqual(self.anonip.process_line(
+            '192.168.100.200'),
+            '192.168.96.0')
+
     def test_column(self):
         self.assertEqual(self.anonip.process_line(DATA['first4']),
                          DATA_RESULT['first4'])
@@ -195,12 +205,6 @@ class TestAnonipCli(unittest.TestCase):
             self.assertEqual(anonip._validate_integer_ht_0('1'), 1)
             self.assertRaises(argparse.ArgumentTypeError,
                               anonip._validate_integer_ht_0, value)
-
-    def test_validate_increment(self):
-        self.assertEqual(anonip._validate_increment('1'), 1)
-        for value in ['0', '2844131328', 'string']:
-            self.assertRaises(argparse.ArgumentTypeError,
-                              anonip._validate_increment, value)
 
 
 class TestMainWithFile(unittest.TestCase):
