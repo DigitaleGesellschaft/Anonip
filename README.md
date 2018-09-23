@@ -52,7 +52,7 @@ usage: anonip.py [-h] [-4 INTEGER] [-6 INTEGER] [-i INTEGER] [-o FILE]
                  [-c INTEGER [INTEGER ...]] [-l STRING] [-r STRING] [-p] [-d]
                  [-v]
 
-An ip address anonymizer.
+Anonip is a tool to anonymize IP-addresses in log-files.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -65,7 +65,8 @@ optional arguments:
   -o FILE, --output FILE
                         file to write to
   -c INTEGER [INTEGER ...], --column INTEGER [INTEGER ...]
-                        assume IP address is in column n (default: 1)
+                        assume IP address is in column n (1-based indexed;
+                        default: 1)
   -l STRING, --delimiter STRING
                         log delimiter (default: " ")
   -r STRING, --replace STRING

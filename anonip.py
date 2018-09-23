@@ -126,7 +126,7 @@ class Anonip(object):
 
     def process_ip(self, ip):
         """
-        Pricess a single ip.
+        Process a single ip.
 
         :param ip: /32 ipaddress.IPv4Network or /128 ipaddress.IPv6Network
         :return: ipaddress.IPv4Address or ipaddress.IPv6Address
@@ -315,7 +315,8 @@ def parse_arguments(args):
     parser.add_argument('-c', '--column', metavar='INTEGER', dest='columns',
                         nargs='+',
                         type=lambda x: _validate_integer_ht_0(x),
-                        help='assume IP address is in column n (default: 1)')
+                        help='assume IP address is in column n (1-based '
+                             'indexed; default: 1)')
     parser.set_defaults(column=[1])
     parser.add_argument('-l', '--delimiter', metavar='STRING', type=str,
                         help='log delimiter (default: " ")')
