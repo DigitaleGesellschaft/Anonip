@@ -223,44 +223,33 @@ class Anonip(object):
     def truncate_address(self, ip):
         """
         Do the actual masking of the IP address
+
         :param ip: ipaddress object
         :return: ipaddress object
         """
         if ip.version == 4:
-            mask = 32 - self.ipv4mask
+            prefix = 32 - self.ipv4mask
         else:
-            mask = 128 - self.ipv6mask
+            prefix = 128 - self.ipv6mask
 
-        return ip.supernet(new_prefix=mask)[0]
-
-
-def _validate_ipv4mask(arg):
-    """
-    Verifies if the supplied ipv4 mask is valid.
-    """
-    msg = 'must be an integer between 1 and 32'
-    try:
-        mask = int(arg)
-    except ValueError:
-        raise argparse.ArgumentTypeError(msg)
-
-    if not 0 < mask <= 32:
-        raise argparse.ArgumentTypeError(msg)
-
-    return mask
+        return ip.supernet(new_prefix=prefix)[0]
 
 
-def _validate_ipv6mask(arg):
+def _validate_ipmask(mask, bits=32):
     """
     Verify if the supplied ipv6 mask is valid.
+
+    :param mask: the provided ip mask
+    :param bits: 32 for ipv4, 128 for ipv6
+    :return: int
     """
     msg = 'must be an integer between 1 and 128'
     try:
-        mask = int(arg)
+        mask = int(mask)
     except ValueError:
         raise argparse.ArgumentTypeError(msg)
 
-    if not 0 < mask <= 128:
+    if not 0 < mask <= bits:
         raise argparse.ArgumentTypeError(msg)
 
     return mask
@@ -269,6 +258,7 @@ def _validate_ipv6mask(arg):
 def _validate_integer_ht_0(value):
     """
     Validate if given string is a number higher than 0.
+
     :param value: str or int
     :return: int
     """
@@ -298,10 +288,10 @@ def parse_arguments(args):
 
     parser.add_argument('-4', '--ipv4mask', metavar='INTEGER', help='truncate '
                         'the last n bits (default: %(default)s)',
-                        type=lambda x: _validate_ipv4mask(x))
+                        type=lambda x: _validate_ipmask(x, 32))
     parser.set_defaults(ipv4mask=12)
     parser.add_argument('-6', '--ipv6mask',
-                        type=lambda x: _validate_ipv6mask(x),
+                        type=lambda x: _validate_ipmask(x, 128),
                         metavar='INTEGER', help='truncate the last n bits '
                         '(default: %(default)s)')
     parser.set_defaults(ipv6mask=84)
