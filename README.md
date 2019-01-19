@@ -120,8 +120,8 @@ for line in data:
 ### Python 2 or 3?
 For compatibility reasons, anonip uses the shebang `#! /usr/bin/env python`.
 This will default to python2 on all Linux distributions except for Arch Linux.
-The performance of anonip can be improved by running it with python3. So on
-distributions where python3 is available, you should preferrably invoke anonip
+The performance of anonip can be improved by running it with python3. If 
+python3 is available on your system, you should preferrably invoke anonip
 like this:
 
 ``` shell
