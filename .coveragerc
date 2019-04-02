@@ -1,12 +1,10 @@
 [paths]
-source=
-    ./anonip.py
-    .tox/py*/lib/python*/site-packages/
+source=.
 
 [run]
 branch = True
 
 [report]
 precision = 2
-exclude_lines =
-    if __name__ == .__main__.:
+fail_under = 100
+show_missing = True

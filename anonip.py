@@ -36,46 +36,49 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
+
+import argparse
+import logging
 import sys
 from io import open
-import argparse
+
 try:
     import ipaddress
-except ImportError:
+except ImportError:  # pragma: no cover
     # Could happen with python < 3.3
-    print("\033[31;1mError: Module ipaddress not found.\033[0m",
-          file=sys.stderr)
+    print("\033[31;1mError: Module ipaddress not found.\033[0m", file=sys.stderr)
     sys.exit(1)
 try:
     # noinspection PyUnresolvedReferences,PyCompatibility
     from urllib.parse import urlparse
-except ImportError:
+except ImportError:  # pragma: no cover
     # compatibility for python < 3
     # noinspection PyUnresolvedReferences,PyCompatibility
     from urlparse import urlparse
-import logging
 
 
-__title__ = 'anonip'
-__description__ = 'Anonip is a tool to anonymize IP-addresses in log-files.'
-__version__ = '1.0.0'
-__license__ = 'BSD'
-__author__ = 'Digitale Gesellschaft'
+__title__ = "anonip"
+__description__ = "Anonip is a tool to anonymize IP-addresses in log-files."
+__version__ = "1.0.0"
+__license__ = "BSD"
+__author__ = "Digitale Gesellschaft"
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()
 
 
 class Anonip(object):
-    def __init__(self,
-                 columns=None,
-                 ipv4mask=12,
-                 ipv6mask=84,
-                 increment=0,
-                 delimiter=' ',
-                 replace=None,
-                 skip_private=False):
+    def __init__(
+        self,
+        columns=None,
+        ipv4mask=12,
+        ipv6mask=84,
+        increment=0,
+        delimiter=" ",
+        replace=None,
+        skip_private=False,
+    ):
         """
         Main class for anonip.
 
@@ -106,11 +109,11 @@ class Anonip(object):
         while 1:
             try:
                 line = sys.stdin.readline()
-            except IOError as err:
+            except IOError as err:  # pragma: no cover
                 # if reading from stdin fails, exit
                 logger.warning(err)
                 break
-            except KeyboardInterrupt:
+            except KeyboardInterrupt:  # pragma: no cover
                 break
             else:
                 line = line.rstrip()
@@ -120,7 +123,7 @@ class Anonip(object):
             if not line:
                 break
 
-            logger.debug('Got line: {}'.format(line))
+            logger.debug("Got line: {}".format(line))
 
             yield self.process_line(line)
 
@@ -140,9 +143,10 @@ class Anonip(object):
                     trunc_ip = trunc_ip + self.increment
                 except ipaddress.AddressValueError:
                     logger.error(
-                        'Could not increment IP {} by {}'.format(
-                            trunc_ip,
-                            self.increment))
+                        "Could not increment IP {} by {}".format(
+                            trunc_ip, self.increment
+                        )
+                    )
             return trunc_ip
 
     def process_line(self, line):
@@ -161,16 +165,13 @@ class Anonip(object):
             try:
                 loglist[decindex]
             except IndexError:
-                logger.warning(
-                    'Column {} does not exist!'.format(self.columns)
-                )
+                logger.warning("Column {} does not exist!".format(self.columns))
                 continue
             else:
                 ip_str, ip = self.extract_ip(loglist[decindex])
                 if ip:
                     trunc_ip = self.process_ip(ip)
-                    loglist[decindex] = loglist[decindex].replace(
-                        ip_str, str(trunc_ip))
+                    loglist[decindex] = loglist[decindex].replace(ip_str, str(trunc_ip))
                 elif self.replace:
                     loglist[decindex] = self.replace
 
@@ -207,12 +208,12 @@ class Anonip(object):
             # then we try if the ip has the port appended and/or a trailing ']'
             try:
                 # strip additional ']' from column. Ugly but functional
-                if (column.startswith('[') and column.endswith(']]')) or (
-                        not column.startswith('[') and column.endswith(']')):
+                if (column.startswith("[") and column.endswith("]]")) or (
+                    not column.startswith("[") and column.endswith("]")
+                ):
                     column = column[:-1]
 
-                parsed = urlparse(
-                    '//{}'.format(column))
+                parsed = urlparse("//{}".format(column))
                 new_column = parsed.hostname
                 ip = ipaddress.ip_network(new_column)
                 return new_column, ip
@@ -243,7 +244,7 @@ def _validate_ipmask(mask, bits=32):
     :param bits: 32 for ipv4, 128 for ipv6
     :return: int
     """
-    msg = 'must be an integer between 1 and 128'
+    msg = "must be an integer between 1 and 128"
     try:
         mask = int(mask)
     except ValueError:
@@ -262,7 +263,7 @@ def _validate_integer_ht_0(value):
     :param value: str or int
     :return: int
     """
-    msg = 'must be a positive integer'
+    msg = "must be a positive integer"
     try:
         value = int(value)
     except ValueError:
@@ -279,49 +280,76 @@ def parse_arguments(args):
     :param args: list
     :return: argparse.Namespace
     """
-    parser = argparse.ArgumentParser(description=__description__,
-                                     epilog='Example-usage in apache-config:\n'
-                                     'CustomLog "| /path/to/anonip.py '
-                                     '[OPTIONS] --output /path/to/log" '
-                                     'combined\n ', formatter_class=argparse.
-                                     RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__description__,
+        epilog="Example-usage in apache-config:\n"
+        'CustomLog "| /path/to/anonip.py '
+        '[OPTIONS] --output /path/to/log" '
+        "combined\n ",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
 
-    parser.add_argument('-4', '--ipv4mask', metavar='INTEGER', help='truncate '
-                        'the last n bits (default: %(default)s)',
-                        type=lambda x: _validate_ipmask(x, 32))
+    parser.add_argument(
+        "-4",
+        "--ipv4mask",
+        metavar="INTEGER",
+        help="truncate " "the last n bits (default: %(default)s)",
+        type=lambda x: _validate_ipmask(x, 32),
+    )
     parser.set_defaults(ipv4mask=12)
-    parser.add_argument('-6', '--ipv6mask',
-                        type=lambda x: _validate_ipmask(x, 128),
-                        metavar='INTEGER', help='truncate the last n bits '
-                        '(default: %(default)s)')
+    parser.add_argument(
+        "-6",
+        "--ipv6mask",
+        type=lambda x: _validate_ipmask(x, 128),
+        metavar="INTEGER",
+        help="truncate the last n bits " "(default: %(default)s)",
+    )
     parser.set_defaults(ipv6mask=84)
-    parser.add_argument('-i', '--increment', metavar='INTEGER',
-                        type=lambda x: _validate_integer_ht_0(x),
-                        help='increment the IP address by n (default: '
-                        '%(default)s)')
+    parser.add_argument(
+        "-i",
+        "--increment",
+        metavar="INTEGER",
+        type=lambda x: _validate_integer_ht_0(x),
+        help="increment the IP address by n (default: " "%(default)s)",
+    )
     parser.set_defaults(increment=0)
-    parser.add_argument('-o', '--output', metavar='FILE',
-                        help='file to write to')
-    parser.add_argument('-c', '--column', metavar='INTEGER', dest='columns',
-                        nargs='+',
-                        type=lambda x: _validate_integer_ht_0(x),
-                        help='assume IP address is in column n (1-based '
-                             'indexed; default: 1)')
+    parser.add_argument("-o", "--output", metavar="FILE", help="file to write to")
+    parser.add_argument(
+        "-c",
+        "--column",
+        metavar="INTEGER",
+        dest="columns",
+        nargs="+",
+        type=lambda x: _validate_integer_ht_0(x),
+        help="assume IP address is in column n (1-based " "indexed; default: 1)",
+    )
     parser.set_defaults(column=[1])
-    parser.add_argument('-l', '--delimiter', metavar='STRING', type=str,
-                        help='log delimiter (default: " ")')
-    parser.set_defaults(delimiter=' ')
-    parser.add_argument('-r', '--replace', metavar='STRING',
-                        help='replacement string in case address parsing fails'
-                        ' Example: 0.0.0.0)')
-    parser.add_argument('-p', '--skip-private', dest='skip_private',
-                        action='store_true',
-                        help='do not mask addresses in private ranges. '
-                             'See IANA Special-Purpose Address Registry.')
-    parser.add_argument('-d', '--debug', action='store_true', help='print '
-                        'debug messages')
-    parser.add_argument('-v', '--version', action='version',
-                        version=__version__)
+    parser.add_argument(
+        "-l",
+        "--delimiter",
+        metavar="STRING",
+        type=str,
+        help='log delimiter (default: " ")',
+    )
+    parser.set_defaults(delimiter=" ")
+    parser.add_argument(
+        "-r",
+        "--replace",
+        metavar="STRING",
+        help="replacement string in case address parsing fails" " Example: 0.0.0.0)",
+    )
+    parser.add_argument(
+        "-p",
+        "--skip-private",
+        dest="skip_private",
+        action="store_true",
+        help="do not mask addresses in private ranges. "
+        "See IANA Special-Purpose Address Registry.",
+    )
+    parser.add_argument(
+        "-d", "--debug", action="store_true", help="print " "debug messages"
+    )
+    parser.add_argument("-v", "--version", action="version", version=__version__)
 
     args = parser.parse_args(args)
 
@@ -339,13 +367,15 @@ def main():
     else:
         logger.level = logging.WARNING
 
-    anonip = Anonip(args.columns,
-                    args.ipv4mask,
-                    args.ipv6mask,
-                    args.increment,
-                    args.delimiter,
-                    args.replace,
-                    args.skip_private)
+    anonip = Anonip(
+        args.columns,
+        args.ipv4mask,
+        args.ipv6mask,
+        args.increment,
+        args.delimiter,
+        args.replace,
+        args.skip_private,
+    )
 
     if args.output:
         try:
@@ -353,12 +383,12 @@ def main():
                 for line in anonip.run():
                     output_file.write("{}\n".format(line))
                     output_file.flush()
-        except IOError as err:
+        except IOError as err:  # pragma: no cover
             logger.error(err)
     else:
         for line in anonip.run():
             print(line)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
