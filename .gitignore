@@ -13,6 +13,7 @@ pyenv/
 pyenv27/
 pyenv.bak/
 pyenv27.bak/
+.python-version
 
 # tests
 .tox/
