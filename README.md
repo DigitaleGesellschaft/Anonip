@@ -1,5 +1,6 @@
 # anonip
 
+[![PyPI](https://img.shields.io/pypi/v/anonip.svg)](https://pypi.org/project/anonip/)
 [![Build Status](https://travis-ci.com/DigitaleGesellschaft/Anonip.svg?branch=master)](https://travis-ci.com/DigitaleGesellschaft/Anonip)
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/DigitaleGesellschaft/Anonip/blob/master/.coveragerc#L11)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/DigitaleGesellschaft/Anonip)
@@ -16,7 +17,7 @@ https://www.privacyfoundation.ch/
 
 ## Description
 
-Anonip is a tool to anonymize IP-addresses in log-files of Apache Webserver
+Anonip is a tool to anonymize IP-addresses in log-files.
 
 It masks the last bits of IPv4- and IPv6-addresses. That way most of the
 relevant information is preserved, while the IP-address does not match a
@@ -129,7 +130,13 @@ python3 is available on your system, you should preferrably invoke anonip
 like this:
 
 ``` shell
-python3 /path/to/anonip.py
+python3 -m anonip [OPTIONS]
+```
+
+or 
+
+``` shell
+python3 /path/to/anonip.py [OPTIONS]
 ```
 
 ## Motivation
