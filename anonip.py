@@ -50,16 +50,14 @@ except ImportError:  # pragma: no cover
     print("\033[31;1mError: Module ipaddress not found.\033[0m", file=sys.stderr)
     sys.exit(1)
 try:
-    # noinspection PyUnresolvedReferences,PyCompatibility
     from urllib.parse import urlparse
 except ImportError:  # pragma: no cover
     # compatibility for python < 3
-    # noinspection PyUnresolvedReferences,PyCompatibility
     from urlparse import urlparse
 
 
 __title__ = "anonip"
-__description__ = "Anonip is a tool to anonymize IP-addresses in log-files."
+__description__ = "Anonip is a tool to anonymize IP-addresses in log files."
 __version__ = "1.0.0"
 __license__ = "BSD"
 __author__ = "Digitale Gesellschaft"
