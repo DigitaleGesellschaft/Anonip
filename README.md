@@ -10,32 +10,32 @@ Digitale Gesellschaft
 https://www.digitale-gesellschaft.ch
 
 
-formerly
+Formerly
 Swiss Privacy Foundation
 https://www.privacyfoundation.ch/
 
 
 ## Description
 
-Anonip is a tool to anonymize IP-addresses in log-files.
+Anonip is a tool to anonymize IP addresses in log files.
 
-It masks the last bits of IPv4- and IPv6-addresses. That way most of the
+It masks the last bits of IPv4 and IPv6 addresses. That way most of the
 relevant information is preserved, while the IP-address does not match a
 particular individuum anymore.
 
-The log-entries get directly piped from Apache to Anonip. The unmasked IP-
+The log entries get directly piped from Apache to Anonip. The unmasked IP
 addresses are never written to any file.
 
-With the help of cat, it's also possible, to rewrite existing log-files.
+With the help of cat, it's also possible to rewrite existing log files.
 
 For usage with nginx see here: https://github.com/DigitaleGesellschaft/Anonip/issues/1
 
 ## Features
 
- - Masks IP-addresses in log-files
+ - Masks IP addresses in log files
  - Configurable amount of masked bits
- - The column containing the IP-address can freely be chosen
- - Works for both access.log- and error.log-files
+ - The column containing the IP address can freely be chosen
+ - Works for both access.log- and error.log files
 
 ## Officially supported python versions
  - 2.7
@@ -57,7 +57,7 @@ usage: anonip.py [-h] [-4 INTEGER] [-6 INTEGER] [-i INTEGER] [-o FILE]
                  [-c INTEGER [INTEGER ...]] [-l STRING] [-r STRING] [-p] [-d]
                  [-v]
 
-Anonip is a tool to anonymize IP-addresses in log-files.
+Anonip is a tool to anonymize IP-addresses in log files.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -85,12 +85,12 @@ optional arguments:
 
 ## Usage
 
-In the Apache configuration (or the one of a vhost) the log-output needs to
+In the Apache configuration (or the one of a vhost) the log output needs to
 get piped to anonip:
 ```
 CustomLog "|/path/to/anonip.py [OPTIONS] --output /path/to/log" combined
 ```
-That's it! All the IP-addresses will be masked in the log now.
+That's it! All the IP addresses will be masked in the log now.
 
 Alternative:
 ```
