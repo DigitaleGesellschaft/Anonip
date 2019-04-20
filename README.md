@@ -142,19 +142,18 @@ python3 /path/to/anonip.py [OPTIONS]
 
 ## Motivation
 
-In a time, where the mass-data-collection of certain companies and
-organisations gets more and more obvious, it's crutial to realize, that also
-we maintain unnecessary huge data-collections.
+In most cases IP addresses are personal data as they refer to individuals (or at least
+their Internet connection). IP addresses - and the data associated with them - may
+therefore only be lawfully processed in accordance with the principles of the
+applicable data protection laws.
 
-For example admins of webservers. In the log-files you can find all the IP-
-addresses of all visitors in cleartext and all of a sudden we possess a huge
-collection of personalized data.
+Storage of log files from web servers, for example, is only permitted within close time
+limits or with the voluntary consent of the persons concerned (as long as the
+information about the IP address is linkable to a person).
 
-Anonip tries to avoid exactly that, but without losing the undisputed benefit
-of those log-files.
+Anonip tries to avoid exactly that, but without losing the benefit of those log files.
 
-With the masking of the last bits of IP-addresses, we're still able to
-distinguish them up to a certain degree. Compared to the entire removal of the
-IP-adresses, we're still able to make a rough geolocating as well as a reverse
-DNS lookup. But the otherwise distinct IP-addresses do not match a particular
-individuum anymore.
+With the masking of the last bits of IP addresses, we're still able to distinguish the
+log entries up to a certain degree. Compared to the entire removal of the IP-adresses,
+we're still able to make a rough geolocating as well as a reverse DNS lookup. But the
+otherwise distinct IP addresses do not match a particular individuum anymore.
