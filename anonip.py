@@ -236,13 +236,13 @@ class Anonip(object):
 
 def _validate_ipmask(mask, bits=32):
     """
-    Verify if the supplied ipv6 mask is valid.
+    Verify if the supplied ip mask is valid.
 
     :param mask: the provided ip mask
     :param bits: 32 for ipv4, 128 for ipv6
     :return: int
     """
-    msg = "must be an integer between 1 and 128"
+    msg = "must be an integer between 1 and {}".format(bits)
     try:
         mask = int(mask)
     except ValueError:
