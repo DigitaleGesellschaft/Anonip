@@ -10,9 +10,7 @@ dist/
 
 # Environments
 pyenv/
-pyenv27/
-pyenv.bak/
-pyenv27.bak/
+venv/
 .python-version
 
 # tests
