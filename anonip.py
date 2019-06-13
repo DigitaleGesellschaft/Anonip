@@ -8,7 +8,7 @@ https://www.digitale-gesellschaft.ch.
 Special thanks to: Thomas B. and Fabio R.
 
 Copyright (c) 2013 - 2016, Swiss Privacy Foundation
-              2016 - 2018, Digitale Gesellschaft
+              2016 - 2019, Digitale Gesellschaft
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
