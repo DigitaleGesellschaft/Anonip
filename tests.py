@@ -129,15 +129,15 @@ class TestAnonipClass(unittest.TestCase):
         self.assertEqual(
             self.anonip.process_line(DATA["first4"]), DATA_RESULT["first4"]
         )
-        self.anonip.columns = [2]
+        self.anonip.columns = [1]
         self.assertEqual(
             self.anonip.process_line(DATA["second4"]), DATA_RESULT["second4"]
         )
-        self.anonip.columns = [3]
+        self.anonip.columns = [2]
         self.assertEqual(
             self.anonip.process_line(DATA["third4"]), DATA_RESULT["third4"]
         )
-        self.anonip.columns = [1, 2, 3]
+        self.anonip.columns = [0, 1, 2]
         self.assertEqual(
             self.anonip.process_line(DATA["multi4"]), DATA_RESULT["multi4"]
         )
@@ -152,7 +152,7 @@ class TestAnonipClass(unittest.TestCase):
 
     def test_delimiter(self):
         self.anonip.delimiter = ";"
-        self.anonip.columns = [2]
+        self.anonip.columns = [1]
         self.assertEqual(
             self.anonip.process_line(DATA["second4"].replace(" ", ";")),
             DATA_RESULT["second4"].replace(" ", ";"),
@@ -176,6 +176,7 @@ class TestAnonipClass(unittest.TestCase):
 
 class TestAnonipCli(unittest.TestCase):
     def test_columns_arg(self):
+        # 1-based column indexes
         self.assertEqual(anonip.parse_arguments(["-c", "3", "5"]).columns, [3, 5])
 
     def test_ipv4mask_arg(self):

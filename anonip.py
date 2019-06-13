@@ -80,7 +80,7 @@ class Anonip(object):
         """
         Main class for anonip.
 
-        :param columns: list of ints
+        :param columns: list of int, 1-based column numbers
         :param ipv4mask: int
         :param ipv6mask: int
         :param increment: int
@@ -88,7 +88,9 @@ class Anonip(object):
         :param replace: str
         :param skip_private: bool
         """
-        self.columns = columns if columns else [1]
+        columns = columns if columns else [1]
+        # change columns to be 0-based
+        self.columns = [c - 1 for c in columns]
         self.ipv4mask = ipv4mask
         self.ipv6mask = ipv6mask
         self.increment = increment
@@ -157,19 +159,18 @@ class Anonip(object):
         loglist = line.split(self.delimiter)
 
         for index in self.columns:
-            decindex = index - 1
             try:
-                loglist[decindex]
+                loglist[index]
             except IndexError:
-                logger.warning("Column %s does not exist!", index)
+                logger.warning("Column %s does not exist!", index + 1)
                 continue
             else:
-                ip_str, ip = self.extract_ip(loglist[decindex])
+                ip_str, ip = self.extract_ip(loglist[index])
                 if ip:
                     trunc_ip = self.process_ip(ip)
-                    loglist[decindex] = loglist[decindex].replace(ip_str, str(trunc_ip))
+                    loglist[index] = loglist[index].replace(ip_str, str(trunc_ip))
                 elif self.replace:
-                    loglist[decindex] = self.replace
+                    loglist[index] = self.replace
 
         return self.delimiter.join(loglist)
 
