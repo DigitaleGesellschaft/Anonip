@@ -121,7 +121,7 @@ class Anonip(object):
             if not line:
                 break
 
-            logger.debug("Got line: {}".format(line))
+            logger.debug("Got line: %r", line)
 
             yield self.process_line(line)
 
@@ -141,9 +141,7 @@ class Anonip(object):
                     trunc_ip = trunc_ip + self.increment
                 except ipaddress.AddressValueError:
                     logger.error(
-                        "Could not increment IP {} by {}".format(
-                            trunc_ip, self.increment
-                        )
+                        "Could not increment IP %s by %s", trunc_ip, self.increment
                     )
             return trunc_ip
 
@@ -163,7 +161,7 @@ class Anonip(object):
             try:
                 loglist[decindex]
             except IndexError:
-                logger.warning("Column {} does not exist!".format(index))
+                logger.warning("Column %s does not exist!", index)
                 continue
             else:
                 ip_str, ip = self.extract_ip(loglist[decindex])
