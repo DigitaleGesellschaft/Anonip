@@ -163,7 +163,7 @@ class Anonip(object):
             try:
                 loglist[decindex]
             except IndexError:
-                logger.warning("Column {} does not exist!".format(self.columns))
+                logger.warning("Column {} does not exist!".format(index))
                 continue
             else:
                 ip_str, ip = self.extract_ip(loglist[decindex])
