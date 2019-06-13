@@ -166,12 +166,11 @@ class TestAnonipClass(unittest.TestCase):
         )
 
     def test_run(self):
-        sys.stdin = StringIO("192.168.100.200\n1.2.3.4\n\n")
+        sys.stdin = StringIO("192.168.100.200\n1.2.3.4\n  \n9.8.130.6\n")
         lines = []
         for line in self.anonip.run():
             lines.append(line)
-        self.assertEqual(lines[0], "192.168.96.0")
-        self.assertEqual(lines[1], "1.2.0.0")
+        assert lines == ["192.168.96.0", "1.2.0.0"]
 
 
 class TestAnonipCli(unittest.TestCase):
