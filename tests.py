@@ -279,5 +279,18 @@ class TestMainWithFile(unittest.TestCase):
         self.assertEqual(logger.level, 30)
 
 
+class TestProperties(unittest.TestCase):
+    def setUp(self):
+        self.anonip = anonip.Anonip(ipv4mask=11, ipv6mask=83)
+
+    def test_properties_v4(self):
+        assert self.anonip.ipv4mask == 11
+        assert self.anonip._ipv4prefix == 21
+
+    def test_properties_v6(self):
+        assert self.anonip.ipv6mask == 83
+        assert self.anonip._ipv6prefix == 45
+
+
 if __name__ == "__main__":
     unittest.main()

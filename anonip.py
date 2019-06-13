@@ -98,6 +98,24 @@ class Anonip(object):
         self.replace = replace
         self.skip_private = skip_private
 
+    @property
+    def ipv4mask(self):
+        return self._ipv4mask
+
+    @ipv4mask.setter
+    def ipv4mask(self, mask):
+        self._ipv4mask = mask
+        self._ipv4prefix = 32 - mask
+
+    @property
+    def ipv6mask(self):
+        return self._ipv6mask
+
+    @ipv6mask.setter
+    def ipv6mask(self, mask):
+        self._ipv6mask = mask
+        self._ipv6prefix = 128 - mask
+
     def run(self):
         """
         Generator that reads from stdin and loops forever.
@@ -226,9 +244,9 @@ class Anonip(object):
         :return: ipaddress object
         """
         if ip.version == 4:
-            prefix = 32 - self.ipv4mask
+            prefix = self._ipv4prefix
         else:
-            prefix = 128 - self.ipv6mask
+            prefix = self._ipv6prefix
 
         return ip.supernet(new_prefix=prefix)[0]
 
