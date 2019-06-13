@@ -170,7 +170,12 @@ class TestAnonipClass(unittest.TestCase):
         lines = []
         for line in self.anonip.run():
             lines.append(line)
-        assert lines == ["192.168.96.0", "1.2.0.0"]
+        assert lines == [
+            "192.168.96.0",
+            "1.2.0.0",
+            "",  # all-white-space line
+            "9.8.128.0",
+        ]
 
 
 class TestAnonipCli(unittest.TestCase):
