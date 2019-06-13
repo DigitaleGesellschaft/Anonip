@@ -91,6 +91,7 @@ class Anonip(object):
         columns = columns if columns else [1]
         # change columns to be 0-based
         self.columns = [c - 1 for c in columns]
+        self._prefixes = {}  # next two lines will fill the values
         self.ipv4mask = ipv4mask
         self.ipv6mask = ipv6mask
         self.increment = increment
@@ -105,7 +106,7 @@ class Anonip(object):
     @ipv4mask.setter
     def ipv4mask(self, mask):
         self._ipv4mask = mask
-        self._ipv4prefix = 32 - mask
+        self._prefixes[4] = 32 - mask
 
     @property
     def ipv6mask(self):
@@ -114,7 +115,7 @@ class Anonip(object):
     @ipv6mask.setter
     def ipv6mask(self, mask):
         self._ipv6mask = mask
-        self._ipv6prefix = 128 - mask
+        self._prefixes[6] = 128 - mask
 
     def run(self):
         """
@@ -243,12 +244,7 @@ class Anonip(object):
         :param ip: ipaddress object
         :return: ipaddress object
         """
-        if ip.version == 4:
-            prefix = self._ipv4prefix
-        else:
-            prefix = self._ipv6prefix
-
-        return ip.supernet(new_prefix=prefix)[0]
+        return ip.supernet(new_prefix=self._prefixes[ip.version])[0]
 
 
 def _validate_ipmask(mask, bits=32):

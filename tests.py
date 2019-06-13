@@ -283,13 +283,20 @@ class TestProperties(unittest.TestCase):
     def setUp(self):
         self.anonip = anonip.Anonip(ipv4mask=11, ipv6mask=83)
 
+    def test_prefixes_dict(self):
+        """Verify the dict contains values for keys 4 and 6 only."""
+        prefixes = self.anonip._prefixes
+        assert len(prefixes) == 2
+        assert 4 in prefixes and bool(prefixes[4])
+        assert 6 in prefixes and bool(prefixes[6])
+
     def test_properties_v4(self):
         assert self.anonip.ipv4mask == 11
-        assert self.anonip._ipv4prefix == 21
+        assert self.anonip._prefixes[4] == 21
 
     def test_properties_v6(self):
         assert self.anonip.ipv6mask == 83
-        assert self.anonip._ipv6prefix == 45
+        assert self.anonip._prefixes[6] == 45
 
 
 if __name__ == "__main__":
