@@ -392,7 +392,7 @@ def main():
         try:
             with open(args.output, "a") as output_file:
                 for line in anonip.run():
-                    output_file.write("{}\n".format(line))
+                    print(line, file=output_file)
                     output_file.flush()
         except IOError as err:  # pragma: no cover
             logger.error(err)
