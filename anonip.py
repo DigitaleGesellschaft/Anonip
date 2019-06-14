@@ -8,7 +8,7 @@ https://www.digitale-gesellschaft.ch.
 Special thanks to: Thomas B. and Fabio R.
 
 Copyright (c) 2013 - 2016, Swiss Privacy Foundation
-              2016 - 2018, Digitale Gesellschaft
+              2016 - 2019, Digitale Gesellschaft
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -104,22 +104,8 @@ class Anonip(object):
 
         :return: None
         """
-        while 1:
-            try:
-                line = sys.stdin.readline()
-            except IOError as err:  # pragma: no cover
-                # if reading from stdin fails, exit
-                logger.warning(err)
-                break
-            except KeyboardInterrupt:  # pragma: no cover
-                break
-            else:
-                line = line.rstrip()
-
-            # if line couldn't be read (e.g. when EOF has been received)
-            # exit the loop
-            if not line:
-                break
+        for line in sys.stdin:
+            line = line.rstrip()
 
             logger.debug("Got line: {}".format(line))
 
