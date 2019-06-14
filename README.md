@@ -86,17 +86,23 @@ optional arguments:
 
 ## Usage
 
-In the Apache configuration (or the one of a vhost) the log output needs to
-get piped to anonip:
-```
-CustomLog "|/path/to/anonip.py [OPTIONS] --output /path/to/log" combined
-```
-That's it! All the IP addresses will be masked in the log now.
-
-Alternative:
-```
+``` shell
 /path/to/anonip.py [OPTIONS] < /path/to/orig_log --output /path/to/log
 ```
+or using shell redirects only (mind the redirected output is appending):
+``` shell
+/path/to/anonip.py [OPTIONS] < /path/to/orig_log >> /path/to/log
+```
+
+### With Apache
+
+In the Apache configuration (or the one of a vhost) the log output needs to
+get piped to anonip like this:
+```
+CustomLog "|/path/to/anonip.py [OPTIONS] --output /path/to/log" combined
+ErrorLog  "|/path/to/anonip.py [OPTIONS] --output /path/to/error_log"
+```
+That's it! All the IP addresses will be masked in the log now.
 
 ### As a python module
 
