@@ -24,8 +24,8 @@ It masks the last bits of IPv4 and IPv6 addresses. That way most of the
 relevant information is preserved, while the IP-address does not match a
 particular individuum anymore.
 
-The log entries get directly piped from Apache to Anonip. The unmasked IP
-addresses are never written to any file.
+Depending on your webserver software, the log entries may directly get piped
+to Anonip. The unmasked IP addresses will never be written to any file.
 
 Using shell redirects, it's also possible to rewrite existing log files.
 
@@ -129,20 +129,18 @@ Read from stdin:
 ``` python
 from anonip import Anonip
 
-
 anonip = Anonip()
 for line in anonip.run():
     print(line)
 
 ```
+
 Manually feed lines:
 ``` python
 from anonip import Anonip
 
-
 data = ['1.1.1.1', '2.2.2.2', '3.3.3.3']
 anonip = Anonip()
-
 for line in data:
     print(anonip.process_line(line))
 
