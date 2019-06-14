@@ -29,8 +29,6 @@ addresses are never written to any file.
 
 Using shell redirects, it's also possible to rewrite existing log files.
 
-For usage with nginx see here: https://github.com/DigitaleGesellschaft/Anonip/issues/1
-
 ## Features
 
  - Masks IP addresses in log files
@@ -103,6 +101,27 @@ CustomLog "|/path/to/anonip.py [OPTIONS] --output /path/to/log" combined
 ErrorLog  "|/path/to/anonip.py [OPTIONS] --output /path/to/error_log"
 ```
 That's it! All the IP addresses will be masked in the log now.
+
+
+### With nginx
+
+nginx does not support spawning a process it then pipes to. Thus
+you need to create a named pipe (file-based FIFO) and start the
+processes yourself, along this lines:
+``` shell
+mkfifo /path/to/log.fifo /path/to/error_log.fifo
+/path/to/anonip.py [OPTIONS] --output /path/to/log < /path/to/log.fifo &
+/path/to/anonip.py [OPTIONS] --output /path/to/error_log < /path/to/error_log.fifo &
+```
+As you can see, you need to start a separate process for each access-log
+file and for each error-log file.
+
+In the nginx configuration (or the one of a vhost) the log output
+needs to be set to the named pipe like this:
+```
+access_log /path/to/log.fifo;
+error_log  /path/to/error_log.fifo;
+```
 
 ### As a python module
 
