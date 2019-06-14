@@ -27,7 +27,7 @@ particular individuum anymore.
 The log entries get directly piped from Apache to Anonip. The unmasked IP
 addresses are never written to any file.
 
-With the help of cat, it's also possible to rewrite existing log files.
+Using shell redirects, it's also possible to rewrite existing log files.
 
 For usage with nginx see here: https://github.com/DigitaleGesellschaft/Anonip/issues/1
 
@@ -95,7 +95,7 @@ That's it! All the IP addresses will be masked in the log now.
 
 Alternative:
 ```
-cat /path/to/orig_log | /path/to/anonip.py [OPTIONS] --output /path/to/log
+/path/to/anonip.py [OPTIONS] < /path/to/orig_log --output /path/to/log
 ```
 
 ### As a python module
