@@ -24,12 +24,10 @@ It masks the last bits of IPv4 and IPv6 addresses. That way most of the
 relevant information is preserved, while the IP-address does not match a
 particular individuum anymore.
 
-The log entries get directly piped from Apache to Anonip. The unmasked IP
-addresses are never written to any file.
+Depending on your webserver software, the log entries may directly get piped
+to Anonip. The unmasked IP addresses will never be written to any file.
 
-With the help of cat, it's also possible to rewrite existing log files.
-
-For usage with nginx see here: https://github.com/DigitaleGesellschaft/Anonip/issues/1
+Using shell redirects, it's also possible to rewrite existing log files.
 
 ## Features
 
@@ -86,16 +84,43 @@ optional arguments:
 
 ## Usage
 
+``` shell
+/path/to/anonip.py [OPTIONS] < /path/to/orig_log --output /path/to/log
+```
+or using shell redirects only (mind the redirected output is appending):
+``` shell
+/path/to/anonip.py [OPTIONS] < /path/to/orig_log >> /path/to/log
+```
+
+### With Apache
+
 In the Apache configuration (or the one of a vhost) the log output needs to
-get piped to anonip:
+get piped to anonip like this:
 ```
 CustomLog "|/path/to/anonip.py [OPTIONS] --output /path/to/log" combined
+ErrorLog  "|/path/to/anonip.py [OPTIONS] --output /path/to/error_log"
 ```
 That's it! All the IP addresses will be masked in the log now.
 
-Alternative:
+
+### With nginx
+
+nginx does not support spawning a process it then pipes to. Thus
+you need to create a named pipe (file-based FIFO) and start the
+processes yourself, along this lines:
+``` shell
+mkfifo /path/to/log.fifo /path/to/error_log.fifo
+/path/to/anonip.py [OPTIONS] --output /path/to/log < /path/to/log.fifo &
+/path/to/anonip.py [OPTIONS] --output /path/to/error_log < /path/to/error_log.fifo &
 ```
-cat /path/to/orig_log | /path/to/anonip.py [OPTIONS] --output /path/to/log
+As you can see, you need to start a separate process for each access-log
+file and for each error-log file.
+
+In the nginx configuration (or the one of a vhost) the log output
+needs to be set to the named pipe like this:
+```
+access_log /path/to/log.fifo;
+error_log  /path/to/error_log.fifo;
 ```
 
 ### As a python module
@@ -104,20 +129,18 @@ Read from stdin:
 ``` python
 from anonip import Anonip
 
-
 anonip = Anonip()
 for line in anonip.run():
     print(line)
 
 ```
+
 Manually feed lines:
 ``` python
 from anonip import Anonip
 
-
 data = ['1.1.1.1', '2.2.2.2', '3.3.3.3']
 anonip = Anonip()
-
 for line in data:
     print(anonip.process_line(line))
 
