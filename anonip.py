@@ -80,7 +80,7 @@ class Anonip(object):
         """
         Main class for anonip.
 
-        :param columns: list of ints
+        :param columns: list of int, 1-based column numbers
         :param ipv4mask: int
         :param ipv6mask: int
         :param increment: int
@@ -88,13 +88,34 @@ class Anonip(object):
         :param replace: str
         :param skip_private: bool
         """
-        self.columns = columns if columns else [1]
+        columns = columns if columns else [1]
+        # change columns to be 0-based
+        self.columns = [c - 1 for c in columns]
+        self._prefixes = {}  # next two lines will fill the values
         self.ipv4mask = ipv4mask
         self.ipv6mask = ipv6mask
         self.increment = increment
         self.delimiter = delimiter
         self.replace = replace
         self.skip_private = skip_private
+
+    @property
+    def ipv4mask(self):
+        return self._ipv4mask
+
+    @ipv4mask.setter
+    def ipv4mask(self, mask):
+        self._ipv4mask = mask
+        self._prefixes[4] = 32 - mask
+
+    @property
+    def ipv6mask(self):
+        return self._ipv6mask
+
+    @ipv6mask.setter
+    def ipv6mask(self, mask):
+        self._ipv6mask = mask
+        self._prefixes[6] = 128 - mask
 
     def run(self):
         """
@@ -107,7 +128,7 @@ class Anonip(object):
         for line in sys.stdin:
             line = line.rstrip()
 
-            logger.debug("Got line: {}".format(line))
+            logger.debug("Got line: %r", line)
 
             yield self.process_line(line)
 
@@ -127,9 +148,7 @@ class Anonip(object):
                     trunc_ip = trunc_ip + self.increment
                 except ipaddress.AddressValueError:
                     logger.error(
-                        "Could not increment IP {} by {}".format(
-                            trunc_ip, self.increment
-                        )
+                        "Could not increment IP %s by %s", trunc_ip, self.increment
                     )
             return trunc_ip
 
@@ -145,19 +164,18 @@ class Anonip(object):
         loglist = line.split(self.delimiter)
 
         for index in self.columns:
-            decindex = index - 1
             try:
-                loglist[decindex]
+                loglist[index]
             except IndexError:
-                logger.warning("Column {} does not exist!".format(self.columns))
+                logger.warning("Column %s does not exist!", index + 1)
                 continue
             else:
-                ip_str, ip = self.extract_ip(loglist[decindex])
+                ip_str, ip = self.extract_ip(loglist[index])
                 if ip:
                     trunc_ip = self.process_ip(ip)
-                    loglist[decindex] = loglist[decindex].replace(ip_str, str(trunc_ip))
+                    loglist[index] = loglist[index].replace(ip_str, str(trunc_ip))
                 elif self.replace:
-                    loglist[decindex] = self.replace
+                    loglist[index] = self.replace
 
         return self.delimiter.join(loglist)
 
@@ -212,12 +230,7 @@ class Anonip(object):
         :param ip: ipaddress object
         :return: ipaddress object
         """
-        if ip.version == 4:
-            prefix = 32 - self.ipv4mask
-        else:
-            prefix = 128 - self.ipv6mask
-
-        return ip.supernet(new_prefix=prefix)[0]
+        return ip.supernet(new_prefix=self._prefixes[ip.version])[0]
 
 
 def _validate_ipmask(mask, bits=32):
@@ -365,7 +378,7 @@ def main():
         try:
             with open(args.output, "a") as output_file:
                 for line in anonip.run():
-                    output_file.write("{}\n".format(line))
+                    print(line, file=output_file)
                     output_file.flush()
         except IOError as err:  # pragma: no cover
             logger.error(err)

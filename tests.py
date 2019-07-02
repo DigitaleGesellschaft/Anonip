@@ -129,15 +129,15 @@ class TestAnonipClass(unittest.TestCase):
         self.assertEqual(
             self.anonip.process_line(DATA["first4"]), DATA_RESULT["first4"]
         )
-        self.anonip.columns = [2]
+        self.anonip.columns = [1]
         self.assertEqual(
             self.anonip.process_line(DATA["second4"]), DATA_RESULT["second4"]
         )
-        self.anonip.columns = [3]
+        self.anonip.columns = [2]
         self.assertEqual(
             self.anonip.process_line(DATA["third4"]), DATA_RESULT["third4"]
         )
-        self.anonip.columns = [1, 2, 3]
+        self.anonip.columns = [0, 1, 2]
         self.assertEqual(
             self.anonip.process_line(DATA["multi4"]), DATA_RESULT["multi4"]
         )
@@ -152,7 +152,7 @@ class TestAnonipClass(unittest.TestCase):
 
     def test_delimiter(self):
         self.anonip.delimiter = ";"
-        self.anonip.columns = [2]
+        self.anonip.columns = [1]
         self.assertEqual(
             self.anonip.process_line(DATA["second4"].replace(" ", ";")),
             DATA_RESULT["second4"].replace(" ", ";"),
@@ -180,6 +180,7 @@ class TestAnonipClass(unittest.TestCase):
 
 class TestAnonipCli(unittest.TestCase):
     def test_columns_arg(self):
+        # 1-based column indexes
         self.assertEqual(anonip.parse_arguments(["-c", "3", "5"]).columns, [3, 5])
 
     def test_ipv4mask_arg(self):
@@ -280,6 +281,26 @@ class TestMainWithFile(unittest.TestCase):
 
         logger = logging.getLogger("anonip")
         self.assertEqual(logger.level, 30)
+
+
+class TestProperties(unittest.TestCase):
+    def setUp(self):
+        self.anonip = anonip.Anonip(ipv4mask=11, ipv6mask=83)
+
+    def test_prefixes_dict(self):
+        """Verify the dict contains values for keys 4 and 6 only."""
+        prefixes = self.anonip._prefixes
+        assert len(prefixes) == 2
+        assert 4 in prefixes and bool(prefixes[4])
+        assert 6 in prefixes and bool(prefixes[6])
+
+    def test_properties_v4(self):
+        assert self.anonip.ipv4mask == 11
+        assert self.anonip._prefixes[4] == 21
+
+    def test_properties_v6(self):
+        assert self.anonip.ipv6mask == 83
+        assert self.anonip._prefixes[6] == 45
 
 
 if __name__ == "__main__":
