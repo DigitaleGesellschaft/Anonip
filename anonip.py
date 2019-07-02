@@ -9,6 +9,7 @@ Special thanks to: Thomas B. and Fabio R.
 
 Copyright (c) 2013 - 2016, Swiss Privacy Foundation
               2016 - 2019, Digitale Gesellschaft
+              2019,        Hartmut Goebel
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
