@@ -317,6 +317,9 @@ def parse_arguments(args):
     parser.set_defaults(increment=0)
     parser.add_argument("-o", "--output", metavar="FILE", help="file to write to")
     parser.add_argument(
+        "--input", metavar="FILE", help="File or FIFO to read from (default: stdin)"
+    )
+    parser.add_argument(
         "-c",
         "--column",
         metavar="INTEGER",
@@ -379,13 +382,15 @@ def main():
         args.skip_private,
     )
 
-    output_file = None
+    input_file = output_file = None
     try:
+        if args.input:
+            input_file = open(args.input, "r")
         if args.output:
             output_file = open(args.output, "a")
         else:
             output_file = sys.stdout
-        for line in anonip.run():
+        for line in anonip.run(input_file):
             print(line, file=output_file)
             # TODO: when dropping support for Python <= 3.3, move the
             # flush into the print()
@@ -393,6 +398,8 @@ def main():
     except IOError as err:  # pragma: no cover
         logger.error(err)
     finally:
+        if args.input and input_file:
+            input_file.close()
         if args.output and output_file:
             output_file.close()
 
