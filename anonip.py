@@ -117,15 +117,20 @@ class Anonip(object):
         self._ipv6mask = mask
         self._prefixes[6] = 128 - mask
 
-    def run(self):
+    def run(self, input_file=None):
         """
         Generator that reads from stdin and loops forever.
 
         Yields anonymized log lines.
 
+        :param input_file: file handle to read from (default: sys.stdin)
         :return: None
         """
-        for line in sys.stdin:
+        if not input_file:
+            # Assign here instead of using a default parameter value
+            # to allow "late binding".
+            input_file = sys.stdin
+        for line in input_file:
             line = line.rstrip()
 
             logger.debug("Got line: %r", line)

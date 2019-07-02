@@ -169,6 +169,15 @@ def test_run():
     assert lines == ["192.168.96.0", "1.2.0.0", "", "9.8.128.0"]
 
 
+def test_run_with_input_file():
+    a = anonip.Anonip()
+
+    input_file = StringIO("192.168.100.200\n1.2.3.4\n  \n9.8.130.6\n")
+
+    lines = [line for line in a.run(input_file)]
+    assert lines == ["192.168.96.0", "1.2.0.0", "", "9.8.128.0"]
+
+
 @pytest.mark.parametrize(
     "args,attribute,expected",
     [
