@@ -387,6 +387,8 @@ def main():
             output_file = sys.stdout
         for line in anonip.run():
             print(line, file=output_file)
+            # TODO: when dropping support for Python <= 3.3, move the
+            # flush into the print()
             output_file.flush()
     except IOError as err:  # pragma: no cover
         logger.error(err)
