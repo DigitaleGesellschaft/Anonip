@@ -379,17 +379,20 @@ def main():
         args.skip_private,
     )
 
-    if args.output:
-        try:
-            with open(args.output, "a") as output_file:
-                for line in anonip.run():
-                    print(line, file=output_file)
-                    output_file.flush()
-        except IOError as err:  # pragma: no cover
-            logger.error(err)
-    else:
+    output_file = None
+    try:
+        if args.output:
+            output_file = open(args.output, "a")
+        else:
+            output_file = sys.stdout
         for line in anonip.run():
-            print(line)
+            print(line, file=output_file)
+            output_file.flush()
+    except IOError as err:  # pragma: no cover
+        logger.error(err)
+    finally:
+        if args.output and output_file:
+            output_file.close()
 
 
 if __name__ == "__main__":  # pragma: no cover
