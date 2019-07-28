@@ -120,7 +120,8 @@ class Anonip(object):
 
     def run(self, input_file=None):
         """
-        Generator that reads from stdin and loops forever.
+        Generator that reads from file handle (defaults to stdin)
+        and loops forever.
 
         Yields anonymized log lines.
 
