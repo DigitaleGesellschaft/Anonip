@@ -299,7 +299,7 @@ def parse_arguments(args):
         "--ipv6mask",
         type=lambda x: _validate_ipmask(x, 128),
         metavar="INTEGER",
-        help="truncate the last n bits " "(default: %(default)s)",
+        help="truncate the last n bits (default: %(default)s)",
     )
     parser.set_defaults(ipv6mask=84)
     parser.add_argument(
@@ -307,7 +307,7 @@ def parse_arguments(args):
         "--increment",
         metavar="INTEGER",
         type=lambda x: _validate_integer_ht_0(x),
-        help="increment the IP address by n (default: " "%(default)s)",
+        help="increment the IP address by n (default: %(default)s)",
     )
     parser.set_defaults(increment=0)
     parser.add_argument("-o", "--output", metavar="FILE", help="file to write to")
@@ -318,7 +318,7 @@ def parse_arguments(args):
         dest="columns",
         nargs="+",
         type=lambda x: _validate_integer_ht_0(x),
-        help="assume IP address is in column n (1-based " "indexed; default: 1)",
+        help="assume IP address is in column n (1-based indexed; default: 1)",
     )
     parser.set_defaults(column=[1])
     parser.add_argument(
@@ -333,7 +333,7 @@ def parse_arguments(args):
         "-r",
         "--replace",
         metavar="STRING",
-        help="replacement string in case address parsing fails" " Example: 0.0.0.0)",
+        help="replacement string in case address parsing fails (Example: 0.0.0.0)",
     )
     parser.add_argument(
         "-p",
@@ -344,7 +344,7 @@ def parse_arguments(args):
         "See IANA Special-Purpose Address Registry.",
     )
     parser.add_argument(
-        "-d", "--debug", action="store_true", help="print " "debug messages"
+        "-d", "--debug", action="store_true", help="print debug messages"
     )
     parser.add_argument("-v", "--version", action="version", version=__version__)
 
