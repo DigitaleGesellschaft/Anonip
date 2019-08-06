@@ -290,7 +290,7 @@ def parse_arguments(args):
         "-4",
         "--ipv4mask",
         metavar="INTEGER",
-        help="truncate " "the last n bits (default: %(default)s)",
+        help="truncate the last n bits (default: %(default)s)",
         type=lambda x: _validate_ipmask(x, 32),
     )
     parser.set_defaults(ipv4mask=12)
