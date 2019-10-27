@@ -49,7 +49,7 @@ If you're using python version >=3.3, there are no external
 dependencies.
 
 For python versions <3.3:
- - [ipaddress module](https://bitbucket.org/kwi/py2-ipaddress/)
+ - [ipaddress module](https://github.com/kwi-dk/py2-ipaddress)
 
 ## Invocation
 
