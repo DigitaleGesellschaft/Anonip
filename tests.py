@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Unittests for anonip.
+Tests for anonip.
 """
 
 
@@ -10,37 +10,16 @@ from __future__ import print_function, unicode_literals
 
 import argparse
 import logging
-import os
 import sys
-import unittest
 from contextlib import contextmanager
 from io import StringIO
+
+import pytest
 
 import anonip
 
 # Keep the output clean
 logging.disable(logging.CRITICAL)
-
-DATA = {
-    "first4": "192.168.100.200 some string with öéäü",
-    "second4": "some 192.168.100.200 string with öéäü",
-    "third4": "some string 192.168.100.200 with öéäü",
-    "multi4": "192.168.100.200 192.168.11.222 192.168.123.234",
-}
-
-DATA_RESULT = {
-    "first4": "192.168.96.0 some string with öéäü",
-    "second4": "some 192.168.96.0 string with öéäü",
-    "third4": "some string 192.168.96.0 with öéäü",
-    "multi4": "192.168.96.0 192.168.0.0 192.168.112.0",
-}
-
-
-def remove_file(filename):
-    try:
-        os.remove(filename)
-    except OSError:
-        pass
 
 
 @contextmanager
@@ -54,254 +33,249 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class TestAnonipClass(unittest.TestCase):
-    def setUp(self):
-        self.anonip = anonip.Anonip()
-
-    def test_process_line_v4(self):
-        ip = "192.168.100.200"
-        self.assertEqual(self.anonip.process_line(ip), "192.168.96.0")
-        self.assertEqual(
-            self.anonip.process_line("192.168.100.200:80"), "192.168.96.0:80"
-        )
-        self.assertEqual(self.anonip.process_line("192.168.100.200]"), "192.168.96.0]")
-        self.assertEqual(
-            self.anonip.process_line("192.168.100.200:80]"), "192.168.96.0:80]"
-        )
-        self.anonip.ipv4mask = 0
-        self.assertEqual(self.anonip.process_line(ip), "192.168.100.200")
-        self.anonip.ipv4mask = 4
-        self.assertEqual(self.anonip.process_line(ip), "192.168.100.192")
-        self.anonip.ipv4mask = 8
-        self.assertEqual(self.anonip.process_line(ip), "192.168.100.0")
-        self.anonip.ipv4mask = 24
-        self.assertEqual(self.anonip.process_line(ip), "192.0.0.0")
-        self.anonip.ipv4mask = 32
-        self.assertEqual(self.anonip.process_line(ip), "0.0.0.0")
-        self.assertEqual(self.anonip.process_line("no_ip_address"), "no_ip_address")
-
-    def test_process_line_v6(self):
-        ip = "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
-        self.assertEqual(self.anonip.process_line(ip), "2001:db8:85a0::")
-
-        self.assertEqual(
-            self.anonip.process_line("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:443"),
+@pytest.mark.parametrize(
+    "ip,v4mask,v6mask,expected",
+    [
+        ("192.168.100.200", 12, 84, "192.168.96.0"),
+        ("192.168.100.200:80", 12, 84, "192.168.96.0:80"),
+        ("192.168.100.200]", 12, 84, "192.168.96.0]"),
+        ("192.168.100.200:80]", 12, 84, "192.168.96.0:80]"),
+        ("192.168.100.200", 0, 84, "192.168.100.200"),
+        ("192.168.100.200", 4, 84, "192.168.100.192"),
+        ("192.168.100.200", 8, 84, "192.168.100.0"),
+        ("192.168.100.200", 24, 84, "192.0.0.0"),
+        ("192.168.100.200", 32, 84, "0.0.0.0"),
+        ("no_ip_address", 12, 84, "no_ip_address"),
+        ("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 12, 84, "2001:db8:85a0::"),
+        (
+            "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:443",
+            12,
+            84,
             "[2001:db8:85a0::]:443",
-        )
-
-        self.assertEqual(
-            self.anonip.process_line("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]"),
-            "[2001:db8:85a0::]",
-        )
-
-        self.assertEqual(
-            self.anonip.process_line("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]]"),
-            "[2001:db8:85a0::]]",
-        )
-
-        self.assertEqual(
-            self.anonip.process_line("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:443]"),
+        ),
+        ("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]", 12, 84, "[2001:db8:85a0::]"),
+        ("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]]", 12, 84, "[2001:db8:85a0::]]"),
+        (
+            "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:443]",
+            12,
+            84,
             "[2001:db8:85a0::]:443]",
-        )
-
-        self.anonip.ipv6mask = 0
-        self.assertEqual(self.anonip.process_line(ip), "2001:db8:85a3::8a2e:370:7334")
-        self.anonip.ipv6mask = 4
-        self.assertEqual(self.anonip.process_line(ip), "2001:db8:85a3::8a2e:370:7330")
-        self.anonip.ipv6mask = 8
-        self.assertEqual(self.anonip.process_line(ip), "2001:db8:85a3::8a2e:370:7300")
-        self.anonip.ipv6mask = 24
-        self.assertEqual(self.anonip.process_line(ip), "2001:db8:85a3::8a2e:300:0")
-        self.anonip.ipv6mask = 32
-        self.assertEqual(self.anonip.process_line(ip), "2001:db8:85a3::8a2e:0:0")
-        self.anonip.ipv6mask = 64
-        self.assertEqual(self.anonip.process_line(ip), "2001:db8:85a3::")
-        self.anonip.ipv6mask = 128
-        self.assertEqual(self.anonip.process_line(ip), "::")
-
-    def test_increment(self):
-        self.anonip.increment = 3
-        self.assertEqual(self.anonip.process_line("192.168.100.200"), "192.168.96.3")
-        self.anonip.increment = 284414028745874325
-        self.assertEqual(self.anonip.process_line("192.168.100.200"), "192.168.96.0")
-
-    def test_column(self):
-        self.assertEqual(
-            self.anonip.process_line(DATA["first4"]), DATA_RESULT["first4"]
-        )
-        self.anonip.columns = [1]
-        self.assertEqual(
-            self.anonip.process_line(DATA["second4"]), DATA_RESULT["second4"]
-        )
-        self.anonip.columns = [2]
-        self.assertEqual(
-            self.anonip.process_line(DATA["third4"]), DATA_RESULT["third4"]
-        )
-        self.anonip.columns = [0, 1, 2]
-        self.assertEqual(
-            self.anonip.process_line(DATA["multi4"]), DATA_RESULT["multi4"]
-        )
-        self.anonip.columns = [9999]
-        self.assertEqual(self.anonip.process_line(DATA["multi4"]), DATA["multi4"])
-
-    def test_replace(self):
-        self.anonip.replace = "replacement"
-        self.assertEqual(
-            self.anonip.process_line("something something"), "replacement something"
-        )
-
-    def test_delimiter(self):
-        self.anonip.delimiter = ";"
-        self.anonip.columns = [1]
-        self.assertEqual(
-            self.anonip.process_line(DATA["second4"].replace(" ", ";")),
-            DATA_RESULT["second4"].replace(" ", ";"),
-        )
-
-    def test_private(self):
-        self.anonip.skip_private = True
-        self.assertEqual(self.anonip.process_line("192.168.100.200"), "192.168.100.200")
-        self.assertEqual(
-            self.anonip.process_line("fd9e:21a7:a92c:2323::1"), "fd9e:21a7:a92c:2323::1"
-        )
-
-    def test_run(self):
-        sys.stdin = StringIO("192.168.100.200\n1.2.3.4\n  \n9.8.130.6\n")
-        lines = []
-        for line in self.anonip.run():
-            lines.append(line)
-        assert lines == [
-            "192.168.96.0",
-            "1.2.0.0",
-            "",  # all-white-space line
-            "9.8.128.0",
-        ]
+        ),
+        (
+            "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+            12,
+            0,
+            "2001:db8:85a3::8a2e:370:7334",
+        ),
+        (
+            "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+            12,
+            4,
+            "2001:db8:85a3::8a2e:370:7330",
+        ),
+        (
+            "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+            12,
+            8,
+            "2001:db8:85a3::8a2e:370:7300",
+        ),
+        (
+            "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+            12,
+            24,
+            "2001:db8:85a3::8a2e:300:0",
+        ),
+        ("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 12, 32, "2001:db8:85a3::8a2e:0:0"),
+        ("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 12, 62, "2001:db8:85a3::"),
+        ("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 12, 128, "::"),
+    ],
+)
+def test_process_line(ip, v4mask, v6mask, expected):
+    a = anonip.Anonip(ipv4mask=v4mask, ipv6mask=v6mask)
+    assert a.process_line(ip) == expected
 
 
-class TestAnonipCli(unittest.TestCase):
-    def test_columns_arg(self):
-        # 1-based column indexes
-        self.assertEqual(anonip.parse_arguments(["-c", "3", "5"]).columns, [3, 5])
-
-    def test_ipv4mask_arg(self):
-        self.assertEqual(anonip.parse_arguments(["-4", "24"]).ipv4mask, 24)
-
-    def test_ipv6mask_arg(self):
-        self.assertEqual(anonip.parse_arguments(["-6", "64"]).ipv6mask, 64)
-
-    def test_validate_ipmask(self):
-        self.assertEqual(anonip._validate_ipmask("1", 32), 1)
-        for value in ["0", "33", "string"]:
-            self.assertRaises(
-                argparse.ArgumentTypeError, anonip._validate_ipmask, value, 32
-            )
-
-        self.assertEqual(anonip._validate_ipmask("1", 128), 1)
-        for value in ["0", "129", "string"]:
-            self.assertRaises(
-                argparse.ArgumentTypeError, anonip._validate_ipmask, value, 128
-            )
-
-    def test_validate_integer_ht_0(self):
-        for value in ["0", "string"]:
-            self.assertEqual(anonip._validate_integer_ht_0("1"), 1)
-            self.assertRaises(
-                argparse.ArgumentTypeError, anonip._validate_integer_ht_0, value
-            )
+@pytest.mark.parametrize(
+    "ip,increment,expected",
+    [
+        ("192.168.100.200", 3, "192.168.96.3"),
+        ("192.168.100.200", 284414028745874325, "192.168.96.0"),
+    ],
+)
+def test_increment(ip, increment, expected):
+    a = anonip.Anonip(increment=increment)
+    assert a.process_line(ip) == expected
 
 
-class TestMainWithFile(unittest.TestCase):
-    def setUp(self):
-        self.log_file = "/tmp/anonip.log"
-        if os.path.exists(self.log_file):
-            raise Exception('File "{}" already exists!'.format(self.log_file))
-        self.old_sys_argv = sys.argv
-        sys.argv = [
-            "anonip.py",
-            "-c",
-            "2",
-            "-4",
-            "12",
-            "-6",
-            "42",
-            "-i",
-            "1",
-            "-l",
-            ";",
-            "-r",
-            "replace",
-            "-p",
-        ]
+@pytest.mark.parametrize(
+    "line,columns,expected",
+    [
+        (
+            "192.168.100.200 some string with öéäü",
+            None,
+            "192.168.96.0 some string with öéäü",
+        ),
+        (
+            "some 192.168.100.200 string with öéäü",
+            [2],
+            "some 192.168.96.0 string with öéäü",
+        ),
+        (
+            "some string 192.168.100.200 with öéäü",
+            [3],
+            "some string 192.168.96.0 with öéäü",
+        ),
+        (
+            "192.168.100.200 192.168.11.222 192.168.123.234",
+            [1, 2, 3],
+            "192.168.96.0 192.168.0.0 192.168.112.0",
+        ),
+        (
+            "192.168.100.200 192.168.11.222 192.168.123.234",
+            [9999],
+            "192.168.100.200 192.168.11.222 192.168.123.234",
+        ),
+    ],
+)
+def test_column(line, columns, expected):
+    a = anonip.Anonip(columns=columns)
+    assert a.process_line(line) == expected
 
-    def tearDown(self):
-        sys.argv = self.old_sys_argv
-        remove_file(self.log_file)
 
-    def test_main_writing_to_file_debug(self):
-        sys.argv += ["-o", self.log_file, "-d"]
-        sys.stdin = StringIO(
-            "string;192.168.100.200\n"
-            "string;1.2.3.4\n"
-            "string;2001:0db8:85a3:0000:0000:8a2e:0370:7334\n"
-            "string;2a00:1450:400a:803::200e\n"
-            "string;string\n\n"
-        )
+def test_replace():
+    a = anonip.Anonip(replace="replacement")
+    assert a.process_line("bla something") == "replacement something"
+
+
+def test_delimiter():
+    a = anonip.Anonip(delimiter=";")
+    assert (
+        a.process_line("192.168.100.200;some;string;with;öéäü")
+        == "192.168.96.0;some;string;with;öéäü"
+    )
+
+
+def test_private():
+    a = anonip.Anonip(skip_private=True)
+    assert a.process_line("192.168.100.200") == "192.168.100.200"
+
+
+def test_run():
+    a = anonip.Anonip()
+
+    sys.stdin = StringIO("192.168.100.200\n1.2.3.4\n  \n9.8.130.6\n")
+
+    lines = [line for line in a.run()]
+    assert lines == ["192.168.96.0", "1.2.0.0", "", "9.8.128.0"]
+
+
+@pytest.mark.parametrize(
+    "args,attribute,expected",
+    [
+        (["-c", "3", "5"], "columns", [3, 5]),
+        (["-4", "24"], "ipv4mask", 24),
+        (["-6", "64"], "ipv6mask", 64),
+    ],
+)
+def test_cli_generic_args(args, attribute, expected):
+    assert getattr(anonip.parse_arguments(args), attribute) == expected
+
+
+@pytest.mark.parametrize(
+    "value,valid,bits",
+    [
+        ("1", True, 32),
+        ("0", False, 32),
+        ("33", False, 32),
+        ("string", False, 32),
+        ("129", False, 128),
+    ],
+)
+def test_cli_validate_ipmask(value, valid, bits):
+    if valid:
+        assert anonip._validate_ipmask(value, bits) == int(value)
+    else:
+        with pytest.raises(argparse.ArgumentTypeError):
+            anonip._validate_ipmask(value, bits)
+
+
+@pytest.mark.parametrize(
+    "value,valid", [("1", True), ("0", False), ("-1", False), ("string", False)]
+)
+def test_cli_validate_integer_ht_0(value, valid):
+    if valid:
+        assert anonip._validate_integer_ht_0(value) == int(value)
+    else:
+        with pytest.raises(argparse.ArgumentTypeError):
+            anonip._validate_integer_ht_0(value)
+
+
+@pytest.mark.parametrize("to_file", [False, True])
+@pytest.mark.parametrize("debug,log_level", [(False, 30), (True, 10)])
+def test_main(to_file, debug, log_level, backup_and_restore_sys_argv, tmp_path):
+    log_file = tmp_path / "anonip.log"
+    sys.argv = [
+        "anonip.py",
+        "-c",
+        "2",
+        "-4",
+        "12",
+        "-6",
+        "42",
+        "-i",
+        "1",
+        "-l",
+        ";",
+        "-r",
+        "replace",
+        "-p",
+    ]
+    if to_file:
+        sys.argv += ["-o", str(log_file)]
+    if debug:
+        sys.argv.append("-d")
+
+    sys.stdin = StringIO(
+        "string;192.168.100.200\n"
+        "string;1.2.3.4\n"
+        "string;2001:0db8:85a3:0000:0000:8a2e:0370:7334\n"
+        "string;2a00:1450:400a:803::200e\n"
+        "string;string\n\n"
+    )
+    with captured_output() as (out, err):
         anonip.main()
 
-        self.assertTrue(os.path.exists(self.log_file))
-        with open(self.log_file, "r") as f:
-            lines = f.readlines()
-
-        self.assertEqual(lines[0], "string;192.168.100.200\n")
-        self.assertEqual(lines[1], "string;1.2.0.1\n")
-        self.assertEqual(lines[2], "string;2001:db8:85a3::8a2e:370:7334\n")
-        self.assertEqual(lines[3], "string;2a00:1450:400a:803::1\n")
-        self.assertEqual(lines[4], "string;replace\n")
-
-        logger = logging.getLogger("anonip")
-        self.assertEqual(logger.level, 10)
-
-    def test_main_to_stdout_no_debug(self):
-        sys.stdin = StringIO(
-            "string;192.168.100.200\n"
-            "string;1.2.3.4\n"
-            "string;2001:0db8:85a3:0000:0000:8a2e:0370:7334\n"
-            "string;2a00:1450:400a:803::200e\n"
-            "string;string\n\n"
-        )
-        with captured_output() as (out, err):
-            anonip.main()
+    if to_file:
+        with log_file.open() as f:
+            lines = [l.rstrip("\n") for l in f.readlines()]
+    else:
         lines = out.getvalue().split("\n")
 
-        self.assertEqual(lines[0], "string;192.168.100.200")
-        self.assertEqual(lines[1], "string;1.2.0.1")
-        self.assertEqual(lines[2], "string;2001:db8:85a3::8a2e:370:7334")
-        self.assertEqual(lines[3], "string;2a00:1450:400a:803::1")
-        self.assertEqual(lines[4], "string;replace")
+    assert lines[0] == "string;192.168.100.200"
+    assert lines[1] == "string;1.2.0.1"
+    assert lines[2] == "string;2001:db8:85a3::8a2e:370:7334"
+    assert lines[3] == "string;2a00:1450:400a:803::1"
+    assert lines[4] == "string;replace"
 
-        logger = logging.getLogger("anonip")
-        self.assertEqual(logger.level, 30)
-
-
-class TestProperties(unittest.TestCase):
-    def setUp(self):
-        self.anonip = anonip.Anonip(ipv4mask=11, ipv6mask=83)
-
-    def test_prefixes_dict(self):
-        """Verify the dict contains values for keys 4 and 6 only."""
-        prefixes = self.anonip._prefixes
-        assert len(prefixes) == 2
-        assert 4 in prefixes and bool(prefixes[4])
-        assert 6 in prefixes and bool(prefixes[6])
-
-    def test_properties_v4(self):
-        assert self.anonip.ipv4mask == 11
-        assert self.anonip._prefixes[4] == 21
-
-    def test_properties_v6(self):
-        assert self.anonip.ipv6mask == 83
-        assert self.anonip._prefixes[6] == 45
+    logger = logging.getLogger("anonip")
+    assert logger.level == log_level
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_prefixes_dict():
+    a = anonip.Anonip(ipv4mask=11, ipv6mask=83)
+    prefixes = a._prefixes
+    assert len(prefixes) == 2
+    assert 4 in prefixes and bool(prefixes[4])
+    assert 6 in prefixes and bool(prefixes[6])
+
+
+def test_properties_v4():
+    a = anonip.Anonip(ipv4mask=11, ipv6mask=83)
+    assert a.ipv4mask == 11
+    assert a._prefixes[4] == 21
+
+
+def test_properties_v6():
+    a = anonip.Anonip(ipv4mask=11, ipv6mask=83)
+    assert a.ipv6mask == 83
+    assert a._prefixes[6] == 45
