@@ -169,6 +169,15 @@ def test_run():
     assert lines == ["192.168.96.0", "1.2.0.0", "", "9.8.128.0"]
 
 
+def test_run_with_input_file():
+    a = anonip.Anonip()
+
+    input_file = StringIO("192.168.100.200\n1.2.3.4\n  \n9.8.130.6\n")
+
+    lines = [line for line in a.run(input_file)]
+    assert lines == ["192.168.96.0", "1.2.0.0", "", "9.8.128.0"]
+
+
 @pytest.mark.parametrize(
     "args,attribute,expected",
     [
@@ -259,6 +268,26 @@ def test_main(to_file, debug, log_level, backup_and_restore_sys_argv, tmp_path):
 
     logger = logging.getLogger("anonip")
     assert logger.level == log_level
+
+
+def test_main_reading_from_input_file(tmp_path, backup_and_restore_sys_argv):
+    input_filename = tmp_path / "anonip-input.txt"
+    input_filename.write_text(
+        "string;192.168.100.200\n"
+        "string;1.2.3.4\n"
+        "string;2001:0db8:85a3:0000:0000:8a2e:0370:7334\n"
+        "string;2a00:1450:400a:803::200e\n"
+        "string;string\n\n"
+    )
+    sys.argv = ["anonip.py", "--input", str(input_filename), "-d"]
+    with captured_output() as (out, err):
+        anonip.main()
+    lines = out.getvalue().split("\n")
+    assert lines[0] == "string;192.168.100.200"
+    assert lines[1] == "string;1.2.3.4"
+    assert lines[2] == "string;2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+    assert lines[3] == "string;2a00:1450:400a:803::200e"
+    assert lines[4] == "string;string"
 
 
 def test_prefixes_dict():

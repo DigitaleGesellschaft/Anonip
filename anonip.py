@@ -9,6 +9,7 @@ Special thanks to: Thomas B. and Fabio R.
 
 Copyright (c) 2013 - 2016, Swiss Privacy Foundation
               2016 - 2019, Digitale Gesellschaft
+              2019,        Hartmut Goebel
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -117,15 +118,21 @@ class Anonip(object):
         self._ipv6mask = mask
         self._prefixes[6] = 128 - mask
 
-    def run(self):
+    def run(self, input_file=None):
         """
-        Generator that reads from stdin and loops forever.
+        Generator that reads from file handle (defaults to stdin)
+        and loops forever.
 
         Yields anonymized log lines.
 
+        :param input_file: file handle to read from (default: sys.stdin)
         :return: None
         """
-        for line in sys.stdin:
+        if not input_file:
+            # Assign here instead of using a default parameter value
+            # to allow "late binding".
+            input_file = sys.stdin
+        for line in input_file:
             line = line.rstrip()
 
             logger.debug("Got line: %r", line)
@@ -312,6 +319,9 @@ def parse_arguments(args):
     parser.set_defaults(increment=0)
     parser.add_argument("-o", "--output", metavar="FILE", help="file to write to")
     parser.add_argument(
+        "--input", metavar="FILE", help="File or FIFO to read from (default: stdin)"
+    )
+    parser.add_argument(
         "-c",
         "--column",
         metavar="INTEGER",
@@ -374,17 +384,26 @@ def main():
         args.skip_private,
     )
 
-    if args.output:
-        try:
-            with open(args.output, "a") as output_file:
-                for line in anonip.run():
-                    print(line, file=output_file)
-                    output_file.flush()
-        except IOError as err:  # pragma: no cover
-            logger.error(err)
-    else:
-        for line in anonip.run():
-            print(line)
+    input_file = output_file = None
+    try:
+        if args.input:
+            input_file = open(args.input, "r")
+        if args.output:
+            output_file = open(args.output, "a")
+        else:
+            output_file = sys.stdout
+        for line in anonip.run(input_file):
+            print(line, file=output_file)
+            # TODO: when dropping support for Python <= 3.3, move the
+            # flush into the print()
+            output_file.flush()
+    except IOError as err:  # pragma: no cover
+        logger.error(err)
+    finally:
+        if args.input and input_file:
+            input_file.close()
+        if args.output and output_file:
+            output_file.close()
 
 
 if __name__ == "__main__":  # pragma: no cover
