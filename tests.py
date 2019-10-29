@@ -148,10 +148,12 @@ def test_private():
     assert a.process_line("192.168.100.200") == "192.168.100.200"
 
 
-def test_run():
+def test_run(monkeypatch):
     a = anonip.Anonip()
 
-    sys.stdin = StringIO("192.168.100.200\n1.2.3.4\n  \n9.8.130.6\n")
+    monkeypatch.setattr(
+        "sys.stdin", StringIO("192.168.100.200\n1.2.3.4\n  \n9.8.130.6\n")
+    )
 
     lines = [line for line in a.run()]
     assert lines == ["192.168.96.0", "1.2.0.0", "", "9.8.128.0"]
@@ -209,7 +211,15 @@ def test_cli_validate_integer_ht_0(value, valid):
 
 @pytest.mark.parametrize("to_file", [False, True])
 @pytest.mark.parametrize("debug,log_level", [(False, 30), (True, 10)])
-def test_main(to_file, debug, log_level, backup_and_restore_sys_argv, capsys, tmp_path):
+def test_main(
+    to_file,
+    debug,
+    log_level,
+    backup_and_restore_sys_argv,
+    capsys,
+    monkeypatch,
+    tmp_path,
+):
     log_file = tmp_path / "anonip.log"
     sys.argv = [
         "anonip.py",
@@ -232,12 +242,15 @@ def test_main(to_file, debug, log_level, backup_and_restore_sys_argv, capsys, tm
     if debug:
         sys.argv.append("-d")
 
-    sys.stdin = StringIO(
-        "string;192.168.100.200\n"
-        "string;1.2.3.4\n"
-        "string;2001:0db8:85a3:0000:0000:8a2e:0370:7334\n"
-        "string;2a00:1450:400a:803::200e\n"
-        "string;string\n"
+    monkeypatch.setattr(
+        "sys.stdin",
+        StringIO(
+            "string;192.168.100.200\n"
+            "string;1.2.3.4\n"
+            "string;2001:0db8:85a3:0000:0000:8a2e:0370:7334\n"
+            "string;2a00:1450:400a:803::200e\n"
+            "string;string\n"
+        ),
     )
     anonip.main()
 
