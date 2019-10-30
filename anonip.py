@@ -89,9 +89,7 @@ class Anonip(object):
         :param replace: str
         :param skip_private: bool
         """
-        columns = columns if columns else [1]
-        # change columns to be 0-based
-        self.columns = [c - 1 for c in columns]
+        self.columns = columns
         self._prefixes = {}  # next two lines will fill the values
         self.ipv4mask = ipv4mask
         self.ipv6mask = ipv6mask
@@ -99,6 +97,15 @@ class Anonip(object):
         self.delimiter = delimiter
         self.replace = replace
         self.skip_private = skip_private
+
+    @property
+    def columns(self):
+        return self._columns
+
+    @columns.setter
+    def columns(self, columns):
+        # change columns to be 0-based
+        self._columns = [c - 1 for c in columns] if columns else [0]
 
     @property
     def ipv4mask(self):

@@ -310,3 +310,10 @@ def test_properties_v6():
     a = anonip.Anonip(ipv4mask=11, ipv6mask=83)
     assert a.ipv6mask == 83
     assert a._prefixes[6] == 45
+
+
+def test_properties_columns():
+    a = anonip.Anonip()
+    assert a.columns == [0]
+    a.columns = [5, 6]
+    assert a.columns == [4, 5]
