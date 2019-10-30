@@ -11,7 +11,6 @@ from __future__ import print_function, unicode_literals
 import argparse
 import logging
 import sys
-from contextlib import contextmanager
 from io import StringIO
 
 import pytest
@@ -20,17 +19,6 @@ import anonip
 
 # Keep the output clean
 logging.disable(logging.CRITICAL)
-
-
-@contextmanager
-def captured_output():
-    new_out, new_err = StringIO(), StringIO()
-    old_out, old_err = sys.stdout, sys.stderr
-    try:
-        sys.stdout, sys.stderr = new_out, new_err
-        yield sys.stdout, sys.stderr
-    finally:
-        sys.stdout, sys.stderr = old_out, old_err
 
 
 @pytest.mark.parametrize(
@@ -160,10 +148,12 @@ def test_private():
     assert a.process_line("192.168.100.200") == "192.168.100.200"
 
 
-def test_run():
+def test_run(monkeypatch):
     a = anonip.Anonip()
 
-    sys.stdin = StringIO("192.168.100.200\n1.2.3.4\n  \n9.8.130.6\n")
+    monkeypatch.setattr(
+        "sys.stdin", StringIO("192.168.100.200\n1.2.3.4\n  \n9.8.130.6\n")
+    )
 
     lines = [line for line in a.run()]
     assert lines == ["192.168.96.0", "1.2.0.0", "", "9.8.128.0"]
@@ -221,7 +211,15 @@ def test_cli_validate_integer_ht_0(value, valid):
 
 @pytest.mark.parametrize("to_file", [False, True])
 @pytest.mark.parametrize("debug,log_level", [(False, 30), (True, 10)])
-def test_main(to_file, debug, log_level, backup_and_restore_sys_argv, tmp_path):
+def test_main(
+    to_file,
+    debug,
+    log_level,
+    backup_and_restore_sys_argv,
+    capsys,
+    monkeypatch,
+    tmp_path,
+):
     log_file = tmp_path / "anonip.log"
     sys.argv = [
         "anonip.py",
@@ -244,21 +242,24 @@ def test_main(to_file, debug, log_level, backup_and_restore_sys_argv, tmp_path):
     if debug:
         sys.argv.append("-d")
 
-    sys.stdin = StringIO(
-        "string;192.168.100.200\n"
-        "string;1.2.3.4\n"
-        "string;2001:0db8:85a3:0000:0000:8a2e:0370:7334\n"
-        "string;2a00:1450:400a:803::200e\n"
-        "string;string\n"
+    monkeypatch.setattr(
+        "sys.stdin",
+        StringIO(
+            "string;192.168.100.200\n"
+            "string;1.2.3.4\n"
+            "string;2001:0db8:85a3:0000:0000:8a2e:0370:7334\n"
+            "string;2a00:1450:400a:803::200e\n"
+            "string;string\n"
+        ),
     )
-    with captured_output() as (out, err):
-        anonip.main()
+    anonip.main()
 
     if to_file:
         with log_file.open() as f:
             lines = [l.rstrip("\n") for l in f.readlines()]
     else:
-        lines = out.getvalue().split("\n")[:-1]
+        captured = capsys.readouterr()
+        lines = captured.out.split("\n")[:-1]
 
     assert lines == [
         "string;192.168.100.200",
@@ -272,7 +273,7 @@ def test_main(to_file, debug, log_level, backup_and_restore_sys_argv, tmp_path):
     assert logger.level == log_level
 
 
-def test_main_reading_from_input_file(tmp_path, backup_and_restore_sys_argv):
+def test_main_reading_from_input_file(tmp_path, capsys, backup_and_restore_sys_argv):
     input_filename = tmp_path / "anonip-input.txt"
     input_filename.write_text(
         "192.168.100.200 string\n"
@@ -281,9 +282,9 @@ def test_main_reading_from_input_file(tmp_path, backup_and_restore_sys_argv):
         "2a00:1450:400a:803::200e string\n"
     )
     sys.argv = ["anonip.py", "--input", str(input_filename), "-d"]
-    with captured_output() as (out, err):
-        anonip.main()
-    lines = out.getvalue().split("\n")[:-1]
+    anonip.main()
+    captured = capsys.readouterr()
+    lines = captured.out.split("\n")[:-1]
     assert lines == [
         "192.168.96.0 string",
         "1.2.0.0 string",
