@@ -406,6 +406,8 @@ def main():
             output_file.flush()
     except IOError as err:  # pragma: no cover
         logger.error(err)
+    except KeyboardInterrupt:  # pragma: no cover
+        pass
     finally:
         if args.input and input_file:
             input_file.close()
