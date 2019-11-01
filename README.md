@@ -55,8 +55,8 @@ For python versions <3.3:
 
 ```
 usage: anonip.py [-h] [-4 INTEGER] [-6 INTEGER] [-i INTEGER] [-o FILE]
-                 [-c INTEGER [INTEGER ...]] [-l STRING] [-r STRING] [-p] [-d]
-                 [-v]
+                 [--input FILE] [-c INTEGER [INTEGER ...]] [-l STRING]
+                 [-r STRING] [-p] [-d] [-v]
 
 Anonip is a tool to anonymize IP-addresses in log files.
 
@@ -70,6 +70,7 @@ optional arguments:
                         increment the IP address by n (default: 0)
   -o FILE, --output FILE
                         file to write to
+  --input FILE          File or FIFO to read from (default: stdin)
   -c INTEGER [INTEGER ...], --column INTEGER [INTEGER ...]
                         assume IP address is in column n (1-based indexed;
                         default: 1)
@@ -77,7 +78,7 @@ optional arguments:
                         log delimiter (default: " ")
   -r STRING, --replace STRING
                         replacement string in case address parsing fails
-                        Example: 0.0.0.0)
+                        (Example: 0.0.0.0)
   -p, --skip-private    do not mask addresses in private ranges. See IANA
                         Special-Purpose Address Registry.
   -d, --debug           print debug messages
