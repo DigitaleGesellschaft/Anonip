@@ -56,6 +56,9 @@ except ImportError:  # pragma: no cover
     # compatibility for python < 3
     from urlparse import urlparse
 
+if sys.version_info[0] >= 3:
+    # compatibility for python < 3
+    unicode = str
 
 __title__ = "anonip"
 __description__ = "Anonip is a tool to anonymize IP-addresses in log files."
@@ -218,7 +221,7 @@ class Anonip(object):
 
         # first we try if the whole column is just the ip
         try:
-            ip = ipaddress.ip_network(column)
+            ip = ipaddress.ip_network(unicode(column))
             return column, ip
         except ValueError:
             # then we try if the ip has the port appended and/or a trailing ']'
@@ -231,7 +234,7 @@ class Anonip(object):
 
                 parsed = urlparse("//{}".format(column))
                 new_column = parsed.hostname
-                ip = ipaddress.ip_network(new_column)
+                ip = ipaddress.ip_network(unicode(new_column))
                 return new_column, ip
             except Exception as e:
                 logger.warning(e)
