@@ -56,7 +56,7 @@ except ImportError:  # pragma: no cover
     # compatibility for python < 3
     from urlparse import urlparse
 
-if sys.version_info[0] >= 3:
+if sys.version_info[0] >= 3:  # pragma: no cover
     # compatibility for python < 3
     unicode = str
 
