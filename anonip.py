@@ -142,12 +142,14 @@ class Anonip(object):
             # Assign here instead of using a default parameter value
             # to allow "late binding".
             input_file = sys.stdin
-        for line in input_file:
+        line = input_file.readline()
+        while line:
             line = line.rstrip()
 
             logger.debug("Got line: %r", line)
 
             yield self.process_line(line)
+            line = input_file.readline()
 
     def process_ip(self, ip):
         """
@@ -403,7 +405,7 @@ def main():
         else:
             output_file = sys.stdout
         for line in anonip.run(input_file):
-            print(line, file=output_file)
+            print(unicode(line), file=output_file)
             # TODO: when dropping support for Python <= 3.3, move the
             # flush into the print()
             output_file.flush()
