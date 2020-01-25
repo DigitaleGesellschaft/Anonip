@@ -2,7 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/anonip.svg)](https://pypi.org/project/anonip/)
 [![Python versions](https://img.shields.io/pypi/pyversions/anonip.svg)](https://pypi.org/project/anonip/)
-[![Build Status](https://travis-ci.org/DigitaleGesellschaft/Anonip.svg?branch=master)](https://travis-ci.com/DigitaleGesellschaft/Anonip)
+[![Build Status](https://github.com/DigitaleGesellschaft/Anonip/workflows/Tests/badge.svg)](https://github.com/DigitaleGesellschaft/Anonip/actions?query=workflow%3ATests)
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/DigitaleGesellschaft/Anonip/blob/master/setup.cfg#L58)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/DigitaleGesellschaft/Anonip)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
@@ -152,7 +152,7 @@ for line in data:
 ### Python 2 or 3?
 For compatibility reasons, anonip uses the shebang `#! /usr/bin/env python`.
 This will default to python2 on all Linux distributions except for Arch Linux.
-The performance of anonip can be improved by running it with python3. If 
+The performance of anonip can be improved by running it with python3. If
 python3 is available on your system, you should preferrably invoke anonip
 like this:
 
@@ -160,7 +160,7 @@ like this:
 python3 -m anonip [OPTIONS]
 ```
 
-or 
+or
 
 ``` shell
 python3 /path/to/anonip.py [OPTIONS]
