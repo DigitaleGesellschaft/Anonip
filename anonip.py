@@ -180,19 +180,25 @@ class Anonip(object):
         :param line: str
         :return: str
         """
+        if line.strip() == "":
+            logger.debug("Empty line detected. Doing nothing.")
+            return line
         loglist = line.split(self.delimiter)
 
         for index in self.columns:
             try:
-                loglist[index]
+                column = loglist[index]
             except IndexError:
                 logger.warning("Column %s does not exist!", index + 1)
                 continue
             else:
-                ip_str, ip = self.extract_ip(loglist[index])
+                if column == "":
+                    logger.debug("Column %s is empty.", index + 1)
+                    continue
+                ip_str, ip = self.extract_ip(column)
                 if ip:
                     trunc_ip = self.process_ip(ip)
-                    loglist[index] = loglist[index].replace(ip_str, str(trunc_ip))
+                    loglist[index] = column.replace(ip_str, str(trunc_ip))
                 elif self.replace:
                     loglist[index] = self.replace
 
