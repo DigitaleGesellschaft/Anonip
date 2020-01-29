@@ -30,6 +30,7 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: Implementation :: PyPy",
     ],
     install_requires=['ipaddress; python_version<"3.3"'],
     py_modules=["anonip"],
