@@ -257,7 +257,7 @@ def test_main(
 
     if to_file:
         with log_file.open() as f:
-            lines = [l.rstrip("\n") for l in f.readlines()]
+            lines = [line.rstrip("\n") for line in f.readlines()]
     else:
         captured = capsys.readouterr()
         lines = captured.out.split("\n")[:-1]
