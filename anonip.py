@@ -146,6 +146,12 @@ class Anonip(object):
         while line:
             line = line.rstrip()
 
+            if line.strip() == "":
+                logger.debug("Empty line detected. Doing nothing.")
+                yield line
+                line = input_file.readline()
+                continue
+
             logger.debug("Got line: %r", line)
 
             yield self.process_line(line)
@@ -180,9 +186,6 @@ class Anonip(object):
         :param line: str
         :return: str
         """
-        if line.strip() == "":
-            logger.debug("Empty line detected. Doing nothing.")
-            return line
         loglist = line.split(self.delimiter)
 
         for index in self.columns:
