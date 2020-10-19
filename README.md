@@ -34,6 +34,7 @@ Using shell redirects, it's also possible to rewrite existing log files.
  - Masks IP addresses in log files
  - Configurable amount of masked bits
  - The column containing the IP address can freely be chosen
+ - Alternatively use a regex to point anonip to the location(s) of the IP(s). See [this RFC](https://github.com/DigitaleGesellschaft/Anonip/issues/44) for more information.
  - Works for both access.log- and error.log files
 
 ## Officially supported python versions
@@ -57,7 +58,7 @@ For python versions <3.3:
 ```
 usage: anonip.py [-h] [-4 INTEGER] [-6 INTEGER] [-i INTEGER] [-o FILE]
                  [--input FILE] [-c INTEGER [INTEGER ...]] [-l STRING]
-                 [-r STRING] [-p] [-d] [-v]
+                 [--regex STRING [STRING ...]] [-r STRING] [-p] [-d] [-v]
 
 Anonip is a tool to anonymize IP-addresses in log files.
 
@@ -77,6 +78,8 @@ optional arguments:
                         default: 1)
   -l STRING, --delimiter STRING
                         log delimiter (default: " ")
+  --regex STRING [STRING ...]
+                        regex for detecting IP addresses (use instead of -c)
   -r STRING, --replace STRING
                         replacement string in case address parsing fails
                         (Example: 0.0.0.0)
@@ -84,6 +87,9 @@ optional arguments:
                         Special-Purpose Address Registry.
   -d, --debug           print debug messages
   -v, --version         show program's version number and exit
+
+Example-usage in apache-config:
+CustomLog "| /path/to/anonip.py [OPTIONS] --output /path/to/log" combined
 ```
 
 ## Usage
