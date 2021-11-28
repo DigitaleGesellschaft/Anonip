@@ -44,6 +44,7 @@ import logging
 import re
 import sys
 from io import open
+from collections import abc
 
 try:
     import ipaddress
@@ -301,6 +302,50 @@ class Anonip(object):
         :return: ipaddress object
         """
         return ip.supernet(new_prefix=self._prefixes[ip.version])[0]
+
+
+class AnonipFilter:
+    def __init__(self, args=None, extra=None, anonip=None):
+        """
+        An implementation of Python logging.Filter using anonip.
+
+        :param args: list of log message args to filter. Defaults to []
+        :param extra: list of LogRecord attributes to filter. Defaults to []
+        :param anonip: dict of parameters for Anonip instance
+        """
+        self.args = [] if args is None else args
+        self.extra = [] if extra is None else extra
+        self.anonip = Anonip(**(anonip or {}))
+
+    def filter(self, record):
+        """
+        See logging.Filter.filter()
+        """
+        if record.name != "anonip":
+            for key in self.args:
+                if isinstance(record.args, abc.Mapping):
+                    if key in record.args:
+                        value = record.args[key]
+                        if isinstance(value, str):
+                            record.args[key] = self.anonip.process_line(value)
+                elif isinstance(record.args, abc.Sequence):
+                    if key < len(record.args):
+                        value = record.args[key]
+                        if isinstance(value, str):
+                            is_tuple = isinstance(record.args, tuple)
+                            if is_tuple:
+                                record.args = list(record.args)
+                            record.args[key] = self.anonip.process_line(value)
+                            if is_tuple:
+                                record.args = tuple(record.args)
+
+            for key in self.extra:
+                if hasattr(record, key):
+                    value = getattr(record, key)
+                    if (isinstance(value, str)):
+                        setattr(record, key, self.anonip.process_line(value))
+
+        return True
 
 
 def _validate_ipmask(mask, bits=32):
