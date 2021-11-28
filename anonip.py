@@ -67,7 +67,6 @@ __license__ = "BSD"
 __author__ = "Digitale Gesellschaft"
 
 logger = logging.getLogger(__name__)
-logging.basicConfig()
 
 
 class Anonip(object):
@@ -390,6 +389,7 @@ def main():
     """
     args = parse_arguments(sys.argv[1:])
 
+    logging.basicConfig()
     if args.debug:
         logger.level = logging.DEBUG
     else:
