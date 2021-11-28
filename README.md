@@ -149,6 +149,30 @@ for line in data:
 
 ```
 
+
+### As a python logging.Filter
+
+```python
+import logging
+
+from anonip import AnonipFilter
+
+if __name__ == '__main__':
+    handler = logging.StreamHandler()
+    handler.addFilter(AnonipFilter())
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[handler]
+    )
+
+    logging.debug('192.0.2.123 - call from root logger')
+
+    logger = logging.getLogger('child')
+    logger.info('2001:db8:abcd:ef01:2345:6789:abcd:ef01 - call from child logger')
+```
+
+
 ### Python 2 or 3?
 For compatibility reasons, anonip uses the shebang `#! /usr/bin/env python`.
 This will default to python2 on all Linux distributions except for Arch Linux.

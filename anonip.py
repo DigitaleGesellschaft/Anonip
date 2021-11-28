@@ -260,6 +260,29 @@ class Anonip(object):
         return ip.supernet(new_prefix=self._prefixes[ip.version])[0]
 
 
+class AnonipFilter:
+    def __init__(self, keys=['msg'], anonip={}):
+        """
+        An implementation of Python logging.Filter using anonip.
+
+        :param keys: list of LogRecord attributes to filter. Defaults to ['msg']
+        :param anonip: dict of parameters for Anonip instance
+        """
+        self.keys = list(keys)
+        self.anonip = Anonip(**anonip)
+
+    def filter(self, record: logging.LogRecord):
+        """
+        See logging.Filter.filter()
+        """
+        for key in self.keys:
+            if hasattr(record, key):
+                line = getattr(record, key)
+                setattr(record, key, self.anonip.process_line(line))
+
+        return True
+
+
 def _validate_ipmask(mask, bits=32):
     """
     Verify if the supplied ip mask is valid.
