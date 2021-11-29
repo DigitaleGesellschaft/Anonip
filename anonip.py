@@ -273,7 +273,7 @@ class AnonipFilter:
         self.extra = extra or ['msg']
         self.anonip = Anonip(**(anonip or {}))
 
-    def filter(self, record: logging.LogRecord):
+    def filter(self, record):
         """
         See logging.Filter.filter()
         """
