@@ -320,6 +320,7 @@ def test_properties_columns():
     a.columns = [5, 6]
     assert a.columns == [4, 5]
 
+
 def test_logging_filter_defaults(caplog):
     logging.disable(logging.NOTSET)
     logging.getLogger("anonip").setLevel(logging.CRITICAL)
@@ -342,6 +343,7 @@ def test_logging_filter_defaults(caplog):
 
     logging.disable(logging.CRITICAL)
 
+
 def test_logging_filter_args(caplog):
     logging.disable(logging.NOTSET)
     logging.getLogger("anonip").setLevel(logging.CRITICAL)
@@ -363,6 +365,7 @@ def test_logging_filter_args(caplog):
     ]
 
     logging.disable(logging.CRITICAL)
+
 
 def test_logging_filter_extra(caplog):
     logging.disable(logging.NOTSET)

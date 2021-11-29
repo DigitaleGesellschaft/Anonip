@@ -266,11 +266,11 @@ class AnonipFilter:
         An implementation of Python logging.Filter using anonip.
 
         :param args: list of log message args to filter. Defaults to []
-        :param extra: list of LogRecord attributes to filter. Defaults to ['msg']
+        :param extra: list of LogRecord attributes to filter. Defaults to ["msg"]
         :param anonip: dict of parameters for Anonip instance
         """
         self.args = args or []
-        self.extra = extra or ['msg']
+        self.extra = extra or ["msg"]
         self.anonip = Anonip(**(anonip or {}))
 
     def filter(self, record):
