@@ -261,21 +261,27 @@ class Anonip(object):
 
 
 class AnonipFilter:
-    def __init__(self, keys=['msg'], anonip={}):
+    def __init__(self, args=None, extra=None, anonip=None):
         """
         An implementation of Python logging.Filter using anonip.
 
-        :param keys: list of LogRecord attributes to filter. Defaults to ['msg']
+        :param args: list of log message args to filter. Defaults to []
+        :param extra: list of LogRecord attributes to filter. Defaults to ['msg']
         :param anonip: dict of parameters for Anonip instance
         """
-        self.keys = list(keys)
-        self.anonip = Anonip(**anonip)
+        self.args = args or []
+        self.extra = extra or ['msg']
+        self.anonip = Anonip(**(anonip or {}))
 
     def filter(self, record: logging.LogRecord):
         """
         See logging.Filter.filter()
         """
-        for key in self.keys:
+        for key in self.args:
+            if key in record.args:
+                record.args[key] = self.anonip.process_line(record.args[key])
+
+        for key in self.extra:
             if hasattr(record, key):
                 line = getattr(record, key)
                 setattr(record, key, self.anonip.process_line(line))
