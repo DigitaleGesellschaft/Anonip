@@ -349,7 +349,7 @@ def test_logging_filter_args(caplog):
     logging.getLogger("anonip").setLevel(logging.CRITICAL)
 
     logger = logging.getLogger("filter_args")
-    logger.addFilter(anonip.AnonipFilter(args=['ip', 'non-existing-attr'], extra=[]))
+    logger.addFilter(anonip.AnonipFilter(args=["ip", "non-existing-attr"], extra=[]))
     logger.setLevel(logging.INFO)
 
     logger.info("%(ip)s string", {"ip": "192.168.100.200"})
@@ -374,7 +374,7 @@ def test_logging_filter_extra(caplog):
     logger = logging.getLogger("filter_args")
     logger.addFilter(
         anonip.AnonipFilter(
-            extra=['ip', 'non-existing-key'], anonip={"ipv4mask": 16, "ipv6mask": 64}
+            extra=["ip", "non-existing-key"], anonip={"ipv4mask": 16, "ipv6mask": 64}
         )
     )
     logger.setLevel(logging.INFO)
