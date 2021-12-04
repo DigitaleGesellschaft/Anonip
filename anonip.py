@@ -270,8 +270,8 @@ class AnonipFilter:
         :param extra: list of LogRecord attributes to filter. Defaults to ["msg"]
         :param anonip: dict of parameters for Anonip instance
         """
-        self.args = args or []
-        self.extra = extra or ["msg"]
+        self.args = [] if args is None else args
+        self.extra = ["msg"] if extra is None else extra
         self.anonip = Anonip(**(anonip or {}))
 
     def filter(self, record):
