@@ -43,6 +43,7 @@ import argparse
 import logging
 import sys
 from io import open
+from collections import abc
 
 try:
     import ipaddress
@@ -279,8 +280,14 @@ class AnonipFilter:
         """
         if record.name != "anonip":
             for key in self.args:
-                if key in record.args:
-                    record.args[key] = self.anonip.process_line(record.args[key])
+                if isinstance(record.args, abc.Mapping):
+                    if key in record.args:
+                        record.args[key] = self.anonip.process_line(record.args[key])
+                elif isinstance(record.args, abc.Sequence):
+                    if key < len(record.args):
+                        # Convert tuple to list if necessary.
+                        record.args = list(record.args)
+                        record.args[key] = self.anonip.process_line(record.args[key])
 
             for key in self.extra:
                 if hasattr(record, key):
