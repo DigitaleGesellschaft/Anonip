@@ -277,14 +277,16 @@ class AnonipFilter:
         """
         See logging.Filter.filter()
         """
-        for key in self.args:
-            if key in record.args:
-                record.args[key] = self.anonip.process_line(record.args[key])
+        if record.name != "anonip":
+            for key in self.args:
+                if key in record.args:
+                    record.args[key] = self.anonip.process_line(record.args[key])
 
-        for key in self.extra:
-            if hasattr(record, key):
-                line = getattr(record, key)
-                setattr(record, key, self.anonip.process_line(line))
+            for key in self.extra:
+                if hasattr(record, key):
+                    value = getattr(record, key)
+                    if (isinstance(value, str)):
+                        setattr(record, key, self.anonip.process_line(value))
 
         return True
 
