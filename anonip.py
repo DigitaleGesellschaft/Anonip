@@ -282,12 +282,19 @@ class AnonipFilter:
             for key in self.args:
                 if isinstance(record.args, abc.Mapping):
                     if key in record.args:
-                        record.args[key] = self.anonip.process_line(record.args[key])
+                        value = record.args[key]
+                        if isinstance(value, str):
+                            record.args[key] = self.anonip.process_line(value)
                 elif isinstance(record.args, abc.Sequence):
                     if key < len(record.args):
-                        # Convert tuple to list if necessary.
-                        record.args = list(record.args)
-                        record.args[key] = self.anonip.process_line(record.args[key])
+                        value = record.args[key]
+                        if isinstance(value, str):
+                            is_tuple = isinstance(record.args, tuple)
+                            if is_tuple:
+                                record.args = list(record.args)
+                            record.args[key] = self.anonip.process_line(value)
+                            if is_tuple:
+                                record.args = tuple(record.args)
 
             for key in self.extra:
                 if hasattr(record, key):
