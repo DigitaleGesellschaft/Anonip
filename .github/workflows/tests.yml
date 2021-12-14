@@ -60,3 +60,20 @@ jobs:
         run: pip install tox
       - name: Run Tox
         run: tox -e black
+
+  gitlint:
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: Install gitlint
+        run: pip install gitlint
+      - name: Run gitlint
+        run: gitlint --contrib contrib-title-conventional-commits
