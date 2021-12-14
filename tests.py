@@ -17,9 +17,6 @@ import pytest
 
 import anonip
 
-# Keep the output clean
-logging.disable(logging.CRITICAL)
-
 
 @pytest.mark.parametrize(
     "ip,v4mask,v6mask,expected",
