@@ -1,0 +1,2 @@
+[general]
+ignore=body-is-missing, body-max-line-length, body-min-length, title-max-length
