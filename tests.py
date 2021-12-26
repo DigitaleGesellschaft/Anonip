@@ -432,27 +432,50 @@ def test_logging_filter_defaults(caplog):
     logging.disable(logging.CRITICAL)
 
 
-def test_logging_filter_args(caplog):
-    logging.disable(logging.NOTSET)
-    logging.getLogger("anonip").setLevel(logging.CRITICAL)
-
+@pytest.mark.parametrize(
+    "string,args,filter_attr,expected",
+    [
+        ("%(ip)s string", {"ip": "192.168.100.200"}, "ip", "192.168.96.0 string"),
+        ("%s string", "192.168.100.200", 0, "192.168.96.0 string"),
+        (
+            "%(ip)s string",
+            {"ip": "2001:0db8:85a3:0000:0000:8a2e:0370:7334"},
+            "ip",
+            "2001:db8:85a0:: string",
+        ),
+        ("string", None, "ip", "string"),
+        ("string", {"ip": ["in a list"]}, "ip", "string"),
+        (
+            "192.168.100.200 %s string",
+            "foo",
+            "also-not-existing-attr",
+            "192.168.96.0 foo string",
+        ),  # make sure to also mask IPs not provided in args
+        ("", "", "", ""),  # make base logging filter return False for coverage
+    ],
+)
+def test_logging_filter_args(
+    string, args, filter_attr, expected, mocker, caplog, enable_logging
+):
     logger = logging.getLogger("filter_args")
-    logger.addFilter(anonip.AnonipFilter(args=["ip", "non-existing-attr"], extra=[]))
+    logger.addFilter(
+        anonip.AnonipFilter(args=[filter_attr, "non-existing-attr"], extra=[])
+    )
     logger.setLevel(logging.INFO)
 
-    logger.info("%(ip)s string", {"ip": "192.168.100.200"})
-    logger.info("string %(ip)s", {"ip": "1.2.3.4"})
-    logger.info("%(ip)s string", {"ip": "2001:0db8:85a3:0000:0000:8a2e:0370:7334"})
-    logger.info("string")
+    log_args = [string]
+    if args:
+        log_args.append(args)
 
-    assert caplog.record_tuples == [
-        ("filter_args", logging.INFO, "192.168.96.0 string"),
-        ("filter_args", logging.INFO, "string 1.2.0.0"),
-        ("filter_args", logging.INFO, "2001:db8:85a0:: string"),
-        ("filter_args", logging.INFO, "string"),
-    ]
-
-    logging.disable(logging.CRITICAL)
+    if string == args == filter_attr == expected == "":
+        mocker.patch.object(logging.Filter, "filter", return_value=False)
+        logger.info(*log_args)
+        assert len(caplog.record_tuples) == 0
+    else:
+        logger.info(*log_args)
+        assert caplog.record_tuples == [
+            ("filter_args", logging.INFO, expected),
+        ]
 
 
 def test_logging_filter_extra(caplog):
