@@ -63,7 +63,7 @@ if sys.version_info[0] >= 3:  # pragma: no cover
 
 __title__ = "anonip"
 __description__ = "Anonip is a tool to anonymize IP-addresses in log files."
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 __license__ = "BSD"
 __author__ = "Digitale Gesellschaft"
 
