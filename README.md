@@ -156,6 +156,37 @@ for line in data:
 
 ```
 
+
+### As a python logging.Filter
+
+```python
+import logging
+
+from anonip import AnonipFilterMsg
+
+if __name__ == '__main__':
+    handler = logging.StreamHandler()
+    handler.addFilter(AnonipFilterMsg())
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[handler]
+    )
+
+    logging.debug('192.0.2.123 - call from root logger')
+
+    logger = logging.getLogger('child')
+    logger.info('2001:db8:abcd:ef01:2345:6789:abcd:ef01 - call from child logger')
+```
+
+The following implementations are available, each targeting different parts of
+logging.LogRecord:
+
+* `AnonipFilterMsg`: Operates on the log format string.
+* `AnonipFilterArg`: Operates on a positional argument.
+* `AnonipFilterExtraField`: Operates on a specific extra field.
+
+
 ### Python 2 or 3?
 For compatibility reasons, anonip uses the shebang `#! /usr/bin/env python`.
 This will default to python2 on all Linux distributions except for Arch Linux.

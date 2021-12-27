@@ -303,6 +303,95 @@ class Anonip(object):
         return ip.supernet(new_prefix=self._prefixes[ip.version])[0]
 
 
+class AnonipFilterMsg(object):
+    def __init__(self, anonip=None):
+        """
+        An implementation of Python logging.Filter using anonip.
+
+        Operates on the `msg` field of a log record.
+
+        :param anonip: dict of parameters for Anonip instance
+        """
+        self.anonip = Anonip(**(anonip or {}))
+
+    def filter(self, record):
+        """
+        Apply anonip IP masking to `record.msg`.
+
+        :param record: logging.LogRecord
+        :return: bool
+        """
+
+        record.msg = self.anonip.process_line(record.msg)
+
+        return True
+
+
+class AnonipFilterExtraField(object):
+    def __init__(self, key, anonip=None):
+        """
+        An implementation of Python logging.Filter using anonip.
+
+        Operates on one extra field of a log record.
+
+        :param key: str name of extra field to operate on.
+        :param anonip: dict of parameters for Anonip instance
+        """
+        self.key = key
+        self.anonip = Anonip(**(anonip or {}))
+
+    def filter(self, record):
+        """
+        Apply anonip IP masking to `record[self.key]`.
+
+        :param record: logging.LogRecord
+        :return: bool
+        """
+
+        if hasattr(record, self.key):
+            value = getattr(record, self.key)
+            if isinstance(value, str):
+                ip = self.anonip.extract_ip(value)[1]
+                if ip:
+                    setattr(record, self.key, str(self.anonip.process_ip(ip)))
+
+        return True
+
+
+class AnonipFilterArg(object):
+    def __init__(self, index, anonip=None):
+        """
+        An implementation of Python logging.Filter using anonip.
+
+        Operates on one positional argument of a log record.
+
+        :param index: int index of argument to operate on.
+        :param anonip: dict of parameters for Anonip instance
+        """
+        self.index = index
+        self.anonip = Anonip(**(anonip or {}))
+
+    def filter(self, record):
+        """
+        Apply anonip IP masking to `record.args[self.index]`.
+
+        :param record: logging.LogRecord
+        :return: bool
+        """
+
+        if self.index < len(record.args):
+            value = record.args[self.index]
+            if isinstance(value, str):
+                ip = self.anonip.extract_ip(value)[1]
+                if ip:
+                    head = record.args[:self.index]
+                    result = (str(self.anonip.process_ip(ip)),)
+                    tail = record.args[self.index+1:]
+                    record.args = head + result + tail
+
+        return True
+
+
 def _validate_ipmask(mask, bits=32):
     """
     Verify if the supplied ip mask is valid.

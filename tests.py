@@ -407,3 +407,119 @@ def test_properties_columns():
     assert a.columns == [0]
     a.columns = [5, 6]
     assert a.columns == [4, 5]
+
+
+def test_logging_filter_msg(caplog):
+    logger = logging.getLogger("filter_msg")
+    logger.addFilter(anonip.AnonipFilterMsg())
+    logger.setLevel(logging.INFO)
+
+    logger.info("192.168.100.200 string")
+    logger.info("1.2.3.4 string")
+    logger.info("2001:0db8:85a3:0000:0000:8a2e:0370:7334 string")
+    logger.info("2a00:1450:400a:803::200e string")
+
+    assert caplog.record_tuples == [
+        ("filter_msg", logging.INFO, "192.168.96.0 string"),
+        ("filter_msg", logging.INFO, "1.2.0.0 string"),
+        ("filter_msg", logging.INFO, "2001:db8:85a0:: string"),
+        ("filter_msg", logging.INFO, "2a00:1450:4000:: string"),
+    ]
+
+
+def test_logging_filter_args(caplog):
+    logger = logging.getLogger("filter_args")
+    logger.addFilter(
+        anonip.AnonipFilterArg(0)
+    )
+    logger.setLevel(logging.INFO)
+
+    logger.info("string %s", "192.168.100.200")
+    logger.info("%s string", "1.2.3.4")
+    logger.info("string %s", "2001:0db8:85a3:0000:0000:8a2e:0370:7334")
+    logger.info("some %s string", "2a00:1450:400a:803::200e")
+    logger.info("invalid %s string", "not-an-ip")
+    logger.info("skip complex %s arg", ("not", "a", "string"))
+
+    expected = [
+        "192.168.96.0",
+        "1.2.0.0",
+        "2001:db8:85a0::",
+        "2a00:1450:4000::",
+        "not-an-ip",
+        ("not", "a", "string"),
+    ]
+
+    actual = [
+        record.args[0]
+        for record
+        in caplog.records
+        if record.name == "filter_args"
+    ]
+
+    assert actual == expected
+
+
+def test_logging_filter_args_missing(caplog):
+    logger = logging.getLogger("filter_extra")
+    logger.addFilter(
+        anonip.AnonipFilterArg(
+            42, anonip={"ipv4mask": 16, "ipv6mask": 64}
+        )
+    )
+    logger.setLevel(logging.INFO)
+
+    logger.info("string")
+
+    assert caplog.record_tuples == [
+        ("filter_extra", logging.INFO, "string"),
+    ]
+
+
+def test_logging_filter_extra(caplog):
+    logger = logging.getLogger("filter_extra")
+    logger.addFilter(
+        anonip.AnonipFilterExtraField(
+            key="ip", anonip={"ipv4mask": 16, "ipv6mask": 64}
+        )
+    )
+    logger.setLevel(logging.INFO)
+
+    logger.info("string", extra={"ip": "192.168.100.200"})
+    logger.info("string", extra={"ip": "1.2.3.4"})
+    logger.info("string", extra={"ip": "2001:0db8:85a3:0000:0000:8a2e:0370:7334"})
+    logger.info("string", extra={"ip": "2a00:1450:400a:803::200e"})
+    logger.info("string", extra={"ip": "not-an-ip"})
+    logger.info("string", extra={"ip": ("not", "a", "string")})
+
+    expected = [
+        "192.168.0.0",
+        "1.2.0.0",
+        "2001:db8:85a3::",
+        "2a00:1450:400a:803::",
+        "not-an-ip",
+        ("not", "a", "string"),
+    ]
+
+    actual = [
+        record.ip
+        for record
+        in caplog.records
+        if record.name == "filter_extra"
+    ]
+
+    assert actual == expected
+
+
+def test_logging_filter_extra_non_existing(caplog):
+    logger = logging.getLogger("filter_extra")
+    logger.addFilter(
+        anonip.AnonipFilterExtraField("non-existing-field")
+    )
+    logger.setLevel(logging.INFO)
+
+    logger.info("string")
+
+    assert caplog.record_tuples == [
+        ("filter_extra", logging.INFO, "string"),
+    ]
