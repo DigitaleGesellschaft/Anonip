@@ -384,9 +384,9 @@ class AnonipFilterArg(object):
             if isinstance(value, str):
                 ip = self.anonip.extract_ip(value)[1]
                 if ip:
-                    head = record.args[:self.index]
+                    head = record.args[: self.index]
                     result = (str(self.anonip.process_ip(ip)),)
-                    tail = record.args[self.index+1:]
+                    tail = record.args[self.index + 1 :]
                     record.args = head + result + tail
 
         return True

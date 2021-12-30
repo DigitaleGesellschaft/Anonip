@@ -429,9 +429,7 @@ def test_logging_filter_msg(caplog):
 
 def test_logging_filter_args(caplog):
     logger = logging.getLogger("filter_args")
-    logger.addFilter(
-        anonip.AnonipFilterArg(0)
-    )
+    logger.addFilter(anonip.AnonipFilterArg(0))
     logger.setLevel(logging.INFO)
 
     logger.info("string %s", "192.168.100.200")
@@ -451,10 +449,7 @@ def test_logging_filter_args(caplog):
     ]
 
     actual = [
-        record.args[0]
-        for record
-        in caplog.records
-        if record.name == "filter_args"
+        record.args[0] for record in caplog.records if record.name == "filter_args"
     ]
 
     assert actual == expected
@@ -463,9 +458,7 @@ def test_logging_filter_args(caplog):
 def test_logging_filter_args_missing(caplog):
     logger = logging.getLogger("filter_extra")
     logger.addFilter(
-        anonip.AnonipFilterArg(
-            42, anonip={"ipv4mask": 16, "ipv6mask": 64}
-        )
+        anonip.AnonipFilterArg(42, anonip={"ipv4mask": 16, "ipv6mask": 64})
     )
     logger.setLevel(logging.INFO)
 
@@ -479,9 +472,7 @@ def test_logging_filter_args_missing(caplog):
 def test_logging_filter_extra(caplog):
     logger = logging.getLogger("filter_extra")
     logger.addFilter(
-        anonip.AnonipFilterExtraField(
-            key="ip", anonip={"ipv4mask": 16, "ipv6mask": 64}
-        )
+        anonip.AnonipFilterExtraField(key="ip", anonip={"ipv4mask": 16, "ipv6mask": 64})
     )
     logger.setLevel(logging.INFO)
 
@@ -501,21 +492,14 @@ def test_logging_filter_extra(caplog):
         ("not", "a", "string"),
     ]
 
-    actual = [
-        record.ip
-        for record
-        in caplog.records
-        if record.name == "filter_extra"
-    ]
+    actual = [record.ip for record in caplog.records if record.name == "filter_extra"]
 
     assert actual == expected
 
 
 def test_logging_filter_extra_non_existing(caplog):
     logger = logging.getLogger("filter_extra")
-    logger.addFilter(
-        anonip.AnonipFilterExtraField("non-existing-field")
-    )
+    logger.addFilter(anonip.AnonipFilterExtraField("non-existing-field"))
     logger.setLevel(logging.INFO)
 
     logger.info("string")
