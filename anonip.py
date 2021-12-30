@@ -60,6 +60,9 @@ except ImportError:  # pragma: no cover
 if sys.version_info[0] >= 3:  # pragma: no cover
     # compatibility for python < 3
     unicode = str
+    string_types = str
+else:
+    string_types = basestring
 
 __title__ = "anonip"
 __description__ = "Anonip is a tool to anonymize IP-addresses in log files."
@@ -350,7 +353,7 @@ class AnonipFilterExtraField(object):
 
         if hasattr(record, self.key):
             value = getattr(record, self.key)
-            if isinstance(value, str):
+            if isinstance(value, string_types):
                 ip = self.anonip.extract_ip(value)[1]
                 if ip:
                     setattr(record, self.key, str(self.anonip.process_ip(ip)))
@@ -381,7 +384,7 @@ class AnonipFilterArg(object):
 
         if self.index < len(record.args):
             value = record.args[self.index]
-            if isinstance(value, str):
+            if isinstance(value, string_types):
                 ip = self.anonip.extract_ip(value)[1]
                 if ip:
                     head = record.args[: self.index]
