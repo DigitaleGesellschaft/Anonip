@@ -133,11 +133,11 @@ def test_column(line, columns, expected):
     "line,regex,expected,replace",
     [
         (
-            '3.3.3.3 - - [20/May/2015:21:05:01 +0000] "GET / HTTP/1.1" 200 13358 "-" "useragent"',
+            '3.3.3.3 - - [20/May/2015:21:05:01 +0000] "GET /723.3.3.357 HTTP/1.1" 200 13358 "-" "useragent"',
             re.compile(
                 r"(?:^([^,]+) - - |.* - somefixedstring: ([^,]+) - .* - ([^,]+))"
             ),
-            '3.3.0.0 - - [20/May/2015:21:05:01 +0000] "GET / HTTP/1.1" 200 13358 "-" "useragent"',
+            '3.3.0.0 - - [20/May/2015:21:05:01 +0000] "GET /723.3.3.357 HTTP/1.1" 200 13358 "-" "useragent"',
             None,
         ),
         (
