@@ -141,6 +141,12 @@ def test_column(line, columns, expected):
             None,
         ),
         (
+            '3.3.3.3 - - [20/May/2015:21:05:01 +0000] "GET /723.3.3.357 HTTP/1.1" 200 13358 "-" "useragent [ip:1.2.3.4]"',
+            re.compile(r"\b([0-9a-fA-F][0-9a-fA-F:\.]*|::[0-9a-fA-F:\.]+)\b"),
+            '3.3.0.0 - - [20/May/2015:21:05:01 +0000] "GET /723.3.3.357 HTTP/1.1" 200 13358 "-" "useragent [ip:1.2.0.0]"',
+            None,
+        ),
+        (
             "blabla/ 3.3.3.3 /blublu",
             re.compile(r"^blabla/ ([^,]+) /blublu"),
             "blabla/ 3.3.0.0 /blublu",

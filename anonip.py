@@ -180,6 +180,35 @@ class Anonip(object):
                     )
             return trunc_ip
 
+    def process_regex_match(self, match):
+        """
+        This function processes a single regex match.
+
+        It returns the anonymized match as string and can be called with re.sub.
+
+        :param match: re.Match
+        :return: str
+        """
+        ret = []
+        last_pos = 0
+
+        for i, g in enumerate(match.groups(), start=1):
+            if not g:
+                continue
+            ip_str, ip = self.extract_ip(g)
+            replacement = (
+                self.process_ip(ip) if ip
+                else self.replace or g
+            )
+            ret.extend((
+                match.group(0)[last_pos:match.start(i) - match.start(0)],
+                str(replacement),
+            ))
+            last_pos = match.end(i) - match.start(0)
+
+        ret.append(match.group(0)[last_pos:])
+        return "".join(ret)
+
     def process_line_regex(self, line):
         """
         This function processes a single line based on the provided regex.
@@ -189,23 +218,7 @@ class Anonip(object):
         :param line: str
         :return: str
         """
-        match = re.match(self.regex, line)
-        if not match:
-            logger.debug("Regex did not match!")
-            return line
-        groups = match.groups()
-
-        for m in set(groups):
-            if not m:
-                continue
-            ip_str, ip = self.extract_ip(m)
-            if ip:
-                trunc_ip = self.process_ip(ip)
-                line = line.replace(ip_str, str(trunc_ip))
-            elif self.replace:
-                line = line.replace(m, self.replace)
-
-        return line
+        return re.sub(self.regex, self.process_regex_match, line)
 
     def process_line_column(self, line):
         """
