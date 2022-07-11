@@ -259,6 +259,7 @@ class Anonip(object):
          - 192.168.100.200:80
          - 192.168.100.200]
          - 192.168.100.200:80]
+         - 2001:0db8:85a3::8a2e:0370:7334:443
          - 2001:0db8:85a3:0000:0000:8a2e:0370:7334
          - [2001:0db8:85a3:0000:0000:8a2e:0370:7334]
          - [2001:0db8:85a3:0000:0000:8a2e:0370:7334]]
@@ -284,6 +285,14 @@ class Anonip(object):
                     not column.startswith("[") and column.endswith("]")
                 ):
                     column = column[:-1]
+
+                # Check for short notation IPv6 address with port, i.e. 2a06:6440:0:2c80::1:46824
+                elif ("::" in column) and (
+                    not any(x in column for x in ["[", "]"])
+                ):
+                    column = column.rsplit(":", 1)[0]
+                    ip = ipaddress.ip_network(unicode(column))
+                    return column, ip
 
                 parsed = urlparse("//{}".format(column))
                 new_column = parsed.hostname
