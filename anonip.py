@@ -250,7 +250,36 @@ class Anonip(object):
         return self.process_line_column(line)
 
     @staticmethod
-    def extract_ip(column):
+    def urlparse_hostname(parsed):  # pragma: no cover
+        """
+        This function fetches a hostname
+
+        `urlparse().hostname` lowercases the ip. This would prevent us
+        from properly replacing the string in the log line. That's why we
+        have to use `urlparse()._hostinfo[0]` here.
+        For python 2.7 `urlparse()._hostinfo` is not available and we resort to
+        copy/adapt the urlparse source.
+
+        :param parsed: urllib.parse.ParseResult
+        :return: str
+        """
+        if hasattr(parsed, "_hostinfo"):
+            # python > 2.7
+            return parsed._hostinfo[0]
+
+        # python 2.7
+        # copied and adapted from urlparse source
+        netloc = parsed.netloc.split("@")[-1]
+        if "[" in netloc and "]" in netloc:
+            return netloc.split("]")[0][1:]
+        elif ":" in netloc:
+            return netloc.split(":")[0]
+        elif netloc == "":
+            return None
+        else:
+            return netloc
+
+    def extract_ip(self, column):
         """
         This function extracts the ip from the column and returns it.
 
@@ -286,7 +315,7 @@ class Anonip(object):
                     column = column[:-1]
 
                 parsed = urlparse("//{}".format(column))
-                new_column = parsed.hostname
+                new_column = self.urlparse_hostname(parsed)
                 ip = ipaddress.ip_network(unicode(new_column))
                 return new_column, ip
             except Exception as e:
