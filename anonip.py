@@ -44,6 +44,7 @@ import logging
 import re
 import sys
 from io import open
+from collections import abc
 
 try:
     import ipaddress
@@ -330,6 +331,72 @@ class Anonip(object):
         :return: ipaddress object
         """
         return ip.supernet(new_prefix=self._prefixes[ip.version])[0]
+
+
+class AnonipFilter(logging.Filter):
+    def __init__(self, name="", args=None, extra=None, anonip=None):
+        """
+        An implementation of Python logging.Filter using anonip.
+
+        :param name: str
+        :param args: list of log message args to filter. Defaults to []
+        :param extra: list of LogRecord attributes to filter. Defaults to []
+        :param anonip: dict of parameters for Anonip instance
+        """
+        super(AnonipFilter, self).__init__(name)
+        self.args = [] if args is None else args
+        self.extra = [] if extra is None else extra
+        self.anonip = Anonip(**(anonip or {}))
+
+    def _set_args_attr(self, args, key):
+        value = args[key]
+        if not isinstance(value, str):
+            return args
+
+        orig_type = type(args)
+        temp_type = list
+        if isinstance(args, abc.Mapping):
+            temp_type = dict
+        has_setitem = hasattr(args, "__setitem__")
+        if not has_setitem:
+            args = temp_type(args)
+        ip = self.anonip.extract_ip(value)[1]
+        if ip:
+            args[key] = str(self.anonip.process_ip(ip))
+        if not has_setitem:
+            args = orig_type(args)
+        return args
+
+    def filter(self, record):
+        """
+         Apply anonip IP masking.
+
+        :param record: logging.LogRecord
+        :return: bool
+        """
+        if not super(AnonipFilter, self).filter(record):
+            return False
+
+        for key in self.args:
+            if isinstance(record.args, abc.Mapping):
+                if key in record.args:
+                    record.args = self._set_args_attr(record.args, key)
+            elif isinstance(record.args, abc.Sequence):
+                if isinstance(key, int) and key < len(record.args):
+                    record.args = self._set_args_attr(record.args, key)
+
+        for key in self.extra:
+            if hasattr(record, key):
+                value = getattr(record, key)
+                if isinstance(value, str):
+                    ip = self.anonip.extract_ip(value)[1]
+                    if ip:
+                        setattr(record, key, str(self.anonip.process_ip(ip)))
+
+        # IP is not in args or extra, but in msg
+        record.msg = self.anonip.process_line(record.msg)
+
+        return True
 
 
 def _validate_ipmask(mask, bits=32):

@@ -411,3 +411,103 @@ def test_properties_columns():
     assert a.columns == [0]
     a.columns = [5, 6]
     assert a.columns == [4, 5]
+
+
+def test_logging_filter_defaults(caplog):
+    logging.disable(logging.NOTSET)
+    logging.getLogger("anonip").setLevel(logging.CRITICAL)
+
+    logger = logging.getLogger("filter_defaults")
+    logger.addFilter(anonip.AnonipFilter())
+    logger.setLevel(logging.INFO)
+
+    logger.info("192.168.100.200 string")
+    logger.info("1.2.3.4 string")
+    logger.info("2001:0db8:85a3:0000:0000:8a2e:0370:7334 string")
+    logger.info("2a00:1450:400a:803::200e string")
+
+    assert caplog.record_tuples == [
+        ("filter_defaults", logging.INFO, "192.168.96.0 string"),
+        ("filter_defaults", logging.INFO, "1.2.0.0 string"),
+        ("filter_defaults", logging.INFO, "2001:db8:85a0:: string"),
+        ("filter_defaults", logging.INFO, "2a00:1450:4000:: string"),
+    ]
+
+    logging.disable(logging.CRITICAL)
+
+
+@pytest.mark.parametrize(
+    "string,args,filter_attr,expected",
+    [
+        ("%(ip)s string", {"ip": "192.168.100.200"}, "ip", "192.168.96.0 string"),
+        ("%s string", "192.168.100.200", 0, "192.168.96.0 string"),
+        (
+            "%(ip)s string",
+            {"ip": "2001:0db8:85a3:0000:0000:8a2e:0370:7334"},
+            "ip",
+            "2001:db8:85a0:: string",
+        ),
+        ("string", None, "ip", "string"),
+        ("string", {"ip": ["in a list"]}, "ip", "string"),
+        (
+            "192.168.100.200 %s string",
+            "foo",
+            "also-not-existing-attr",
+            "192.168.96.0 foo string",
+        ),  # make sure to also mask IPs not provided in args
+        ("", "", "", ""),  # make base logging filter return False for coverage
+    ],
+)
+def test_logging_filter_args(
+    string, args, filter_attr, expected, mocker, caplog, enable_logging
+):
+    logger = logging.getLogger("filter_args")
+    logger.addFilter(
+        anonip.AnonipFilter(args=[filter_attr, "non-existing-attr"], extra=[])
+    )
+    logger.setLevel(logging.INFO)
+
+    log_args = [string]
+    if args:
+        log_args.append(args)
+
+    if string == args == filter_attr == expected == "":
+        mocker.patch.object(logging.Filter, "filter", return_value=False)
+        logger.info(*log_args)
+        assert len(caplog.record_tuples) == 0
+    else:
+        logger.info(*log_args)
+        assert caplog.record_tuples == [
+            ("filter_args", logging.INFO, expected),
+        ]
+
+
+def test_logging_filter_extra(caplog):
+    logging.disable(logging.NOTSET)
+    logging.getLogger("anonip").setLevel(logging.CRITICAL)
+
+    logger = logging.getLogger("filter_args")
+    logger.addFilter(
+        anonip.AnonipFilter(
+            extra=["ip", "non-existing-key"], anonip={"ipv4mask": 16, "ipv6mask": 64}
+        )
+    )
+    logger.setLevel(logging.INFO)
+
+    logger.info("string", extra={"ip": "192.168.100.200"})
+    logger.info("string", extra={"ip": "1.2.3.4"})
+    logger.info("string", extra={"ip": "2001:0db8:85a3:0000:0000:8a2e:0370:7334"})
+    logger.info("string", extra={"ip": "2a00:1450:400a:803::200e"})
+
+    expected = [
+        "192.168.0.0",
+        "1.2.0.0",
+        "2001:db8:85a3::",
+        "2a00:1450:400a:803::",
+    ]
+
+    actual = [record.ip for record in caplog.records]
+
+    assert actual == expected
+
+    logging.disable(logging.CRITICAL)
