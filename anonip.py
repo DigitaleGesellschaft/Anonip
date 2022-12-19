@@ -294,6 +294,14 @@ class Anonip(object):
                     ip = ipaddress.ip_network(unicode(column))
                     return column, ip
 
+                # Check for long notation IPv6 address with port, i.e. 2003:e7:472e:76e4:145d:8ad7:70a8:6c18:33730
+                elif (len(column.split(":")) == 9) and (
+                    not any(x in column for x in ["[", "]"])
+                ):
+                    column = column.rsplit(":", 1)[0]
+                    ip = ipaddress.ip_network(unicode(column))
+                    return column, ip
+
                 parsed = urlparse("//{}".format(column))
                 new_column = parsed.hostname
                 ip = ipaddress.ip_network(unicode(new_column))
