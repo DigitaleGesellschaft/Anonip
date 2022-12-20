@@ -288,6 +288,7 @@ class Anonip(object):
          - 192.168.100.200:80
          - 192.168.100.200]
          - 192.168.100.200:80]
+         - 2001:0db8:85a3::8a2e:0370:7334:443
          - 2001:0db8:85a3:0000:0000:8a2e:0370:7334
          - [2001:0db8:85a3:0000:0000:8a2e:0370:7334]
          - [2001:0db8:85a3:0000:0000:8a2e:0370:7334]]
@@ -313,6 +314,25 @@ class Anonip(object):
                     not column.startswith("[") and column.endswith("]")
                 ):
                     column = column[:-1]
+
+                # Check for short notation IPv6 address with port, i.e. 2a06:6440:0:2c80::1:46824
+                elif ("::" in column) and (
+                    not any(x in column for x in ["[", "]"])
+                ):
+                    column = column.rsplit(":", 1)[0]
+                    ip = ipaddress.ip_network(unicode(column))
+                    return column, ip
+
+                # Check for long notation IPv6 address with port, i.e. 2003:e7:472e:76e4:145d:8ad7:70a8:6c18:33730
+                elif (len(column.split(":")) == 9) and (
+                    not any(x in column for x in ["[", "]"])
+                ):
+                    column = column.rsplit(":", 1)[0]
+                    ip = ipaddress.ip_network(unicode(column))
+                    return column, ip
+                # Ignore Apache error codes in multi-line log statements
+                elif (column.startswith("AH")):
+                    return None, None
 
                 parsed = urlparse("//{}".format(column))
                 new_column = self.urlparse_hostname(parsed)
