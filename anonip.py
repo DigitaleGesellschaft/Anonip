@@ -301,6 +301,9 @@ class Anonip(object):
                     column = column.rsplit(":", 1)[0]
                     ip = ipaddress.ip_network(unicode(column))
                     return column, ip
+                # Ignore Apache error codes in multi-line log statements
+                elif (column.startswith("AH")):
+                    return None, None
 
                 parsed = urlparse("//{}".format(column))
                 new_column = parsed.hostname
